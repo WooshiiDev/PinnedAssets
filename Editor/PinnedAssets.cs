@@ -12,7 +12,7 @@ namespace PinnedAssets
     {
         // - Fields
 
-        [SerializeField] private List<Object> assets;
+        [SerializeField] private List<Object> assets = new List<Object>();
 
         // - Properties
 
@@ -95,7 +95,6 @@ namespace PinnedAssets
 
                         foreach (Object item in DragAndDrop.objectReferences)
                         {
-                            Debug.Log(item);
                             Target.AddAsset(item);
                         }
                     }
@@ -116,15 +115,15 @@ namespace PinnedAssets
                     GUIContent content = new GUIContent(EditorGUIUtility.ObjectContent(asset, asset.GetType()));
                     content.text = asset.name;
 
-                    if (GUILayout.Button(content, Styles.ToolbarButtonLeft))
-                    {
-                        Selection.activeObject = asset;
-                    }
-
                     if (GUILayout.Button(Icons.Trash, GUILayout.Width(32f)))
                     {
                         Target.RemoveAsset(asset);
                         i--;
+                    }
+                    
+                    if (GUILayout.Button(content, Styles.ToolbarButtonLeft))
+                    {
+                        Selection.activeObject = asset;
                     }
                 }
                 EditorGUILayout.EndHorizontal();
