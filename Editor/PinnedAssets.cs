@@ -5,6 +5,7 @@ using System;
 using Object = UnityEngine.Object;
 using UnityEngine.UIElements;
 using Unity.VisualScripting;
+using Codice.Client.BaseCommands;
 
 namespace PinnedAssets
 {
@@ -57,6 +58,10 @@ namespace PinnedAssets
     [CustomEditor(typeof(PinnedAssetsData))]
     public class PinnedAssetsEditor : Editor
     {
+        // - Fields
+
+        private string search;
+
         // - Properties
 
         private PinnedAssetsData Target => target as PinnedAssetsData;
@@ -88,9 +93,15 @@ namespace PinnedAssets
 
         private void DrawAssets()
         {
-            for (int i = 0; i < Target.Assets.Length; i++)
+            search = EditorGUILayout.TextField(search, EditorStyles.toolbarSearchField);
+
+            Object[] assets = string.IsNullOrEmpty(search)
+                ? Target.Assets
+                : GetFilteredAssets(search);
+
+            for (int i = 0; i < assets.Length; i++)
             {
-                Object asset = Target.Assets[i];
+                Object asset = assets[i];
 
                 if (asset == null)
                 {
@@ -162,6 +173,30 @@ namespace PinnedAssets
                     break;
 
             } 
+        }
+  
+        private Object[] GetFilteredAssets(string query)
+        {
+            if (string.IsNullOrEmpty(query))
+            {
+                return Target.Assets;
+            }
+
+            query = query.ToLower().Trim();
+
+            List<Object> filteredAssets = new List<Object>();
+            for (int i = 0; i < Target.Assets.Length; i++)
+            {
+                Object asset = Target.Assets[i];
+                string name = asset.name.ToLower();
+                string type = asset.GetType().Name.ToLower();
+
+                if (name.Contains(query) || type.Contains(query))
+                {
+                    filteredAssets.Add(asset);
+                }
+            }
+            return filteredAssets.ToArray();
         }
     }
 
