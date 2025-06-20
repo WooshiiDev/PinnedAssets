@@ -146,32 +146,6 @@ namespace PinnedAssets
 
             } 
         }
-
-        private void DrawElements()
-        {
-            for (int i = 0; i < Target.Assets.Length; i++)
-            {
-                Object asset = Target.Assets[i];
-
-                EditorGUILayout.BeginHorizontal();
-                {
-                    GUIContent content = new GUIContent(EditorGUIUtility.ObjectContent(asset, asset.GetType()));
-                    content.text = asset.name;
-
-                    if (GUILayout.Button(content, Styles.ToolbarButtonLeft))
-                    {
-                        Selection.activeObject = asset;
-                    }
-
-                    if (GUILayout.Button(Icons.Trash, GUILayout.Width(32f)))
-                    {
-                        Target.RemoveAsset(asset);
-                        i--;
-                    }
-                }
-                EditorGUILayout.EndHorizontal();
-            }
-        }
     }
 
     public static class Icons
