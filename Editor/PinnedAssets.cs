@@ -65,13 +65,25 @@ namespace PinnedAssets
 
         public override void OnInspectorGUI()
         {
-            Rect rect = EditorGUILayout.BeginVertical(GUI.skin.box, GUILayout.MinHeight(100f));
+            Rect rect = EditorGUILayout.BeginVertical(GUI.skin.box, GUILayout.MinHeight(32f));
             {
+                DrawContentHeader();
                 DrawAssets();
+                DrawContentFooter();
             }
             EditorGUILayout.EndVertical();
 
             HandleEvents(rect, Event.current);
+        }
+
+        private void DrawContentHeader()
+        {
+            EditorGUILayout.LabelField("Pinned Assets", Styles.Title);
+        }
+
+        private void DrawContentFooter()
+        {
+            EditorGUILayout.LabelField("Drag asset into area to add", EditorStyles.centeredGreyMiniLabel);
         }
 
         private void DrawAssets()
@@ -98,17 +110,16 @@ namespace PinnedAssets
             EditorGUIUtility.SetIconSize(16f * Vector2.one);
             EditorGUILayout.BeginHorizontal();
             {
-                if (GUILayout.Button(Icons.Select, EditorStyles.toolbarButton, GUILayout.Width(32f)))
+                GUIContent content = EditorGUIUtility.ObjectContent(asset, asset.GetType());
+                content.text = asset.name;
+
+                float contentWidth = Styles.ToolbarButtonLeft.CalcSize(content).x;
+
+                if (GUILayout.Button(content, Styles.ToolbarButtonLeft))
                 {
                     Selection.activeObject = asset;
                 }
 
-                GUIContent content = EditorGUIUtility.ObjectContent(asset, asset.GetType());
-                float contentWidth = EditorStyles.label.CalcSize(content).x;
-
-                EditorGUILayout.LabelField(content, GUILayout.Width(contentWidth));
-
-                GUILayout.FlexibleSpace();
 
                 if (GUILayout.Button(Icons.Trash, EditorStyles.toolbarButton, GUILayout.Width(32f)))
                 {
@@ -162,12 +173,21 @@ namespace PinnedAssets
 
     public static class Styles 
     {
+        public static readonly GUIStyle Title;
+
         public static readonly GUIStyle ToolbarNoStretch;
         public static readonly GUIStyle ToolbarNoStretchLeft;
-        public static readonly GUIStyle ToolbarButton;
-
+        public static readonly GUIStyle ToolbarButtonLeft;
+        
         static Styles()
         {
+            // - Labels
+
+            Title = new GUIStyle(EditorStyles.boldLabel)
+            {
+                fontSize = 18,
+            };
+
             // - Toolbars
 
             ToolbarNoStretch = new GUIStyle(EditorStyles.toolbarButton)
@@ -180,6 +200,11 @@ namespace PinnedAssets
                 alignment = TextAnchor.MiddleLeft,
             };
 
+            ToolbarButtonLeft = new GUIStyle(EditorStyles.toolbarButton)
+            {
+                stretchWidth = true,
+                alignment = TextAnchor.MiddleLeft,
+            };
         }
     }
 }
