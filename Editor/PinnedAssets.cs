@@ -61,6 +61,7 @@ namespace PinnedAssets
         // - Fields
 
         private string search;
+        private bool performDrag;
 
         // - Properties
 
@@ -79,6 +80,13 @@ namespace PinnedAssets
             EditorGUILayout.EndVertical();
 
             HandleEvents(rect, Event.current);
+
+            if (performDrag)
+            {
+                Handles.BeginGUI();
+                Handles.DrawSolidRectangleWithOutline(rect, Color.clear, Color.grey);
+                Handles.EndGUI();
+            }
         }
 
         private void DrawContentHeader()
@@ -154,6 +162,8 @@ namespace PinnedAssets
                         return;
                     }
 
+                    performDrag = true;
+
                     // Copy over
 
                     DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
@@ -168,8 +178,13 @@ namespace PinnedAssets
                         }
 
                         EditorUtility.SetDirty(Target);
+                        performDrag = false;
                     }
 
+                    break;
+
+                case EventType.DragExited:
+                    performDrag = false;
                     break;
 
             } 
