@@ -4,6 +4,7 @@ using UnityEditor;
 using System;
 using Object = UnityEngine.Object;
 using UnityEngine.UIElements;
+using Unity.VisualScripting;
 
 namespace PinnedAssets
 {
@@ -64,17 +65,74 @@ namespace PinnedAssets
 
         public override void OnInspectorGUI()
         {
-
-            // Contents
-
-            Rect rect = EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.MinHeight(100f));
+            Rect rect = EditorGUILayout.BeginVertical(GUI.skin.box, GUILayout.MinHeight(32f));
             {
-                DrawElements();
+                DrawContentHeader();
+                DrawAssets();
+                DrawContentFooter();
             }
             EditorGUILayout.EndVertical();
 
-            Event evt = Event.current;
+            HandleEvents(rect, Event.current);
+        }
 
+        private void DrawContentHeader()
+        {
+            EditorGUILayout.LabelField("Pinned Assets", Styles.Title);
+        }
+
+        private void DrawContentFooter()
+        {
+            EditorGUILayout.LabelField("Drag asset into area to add", EditorStyles.centeredGreyMiniLabel);
+        }
+
+        private void DrawAssets()
+        {
+            for (int i = 0; i < Target.Assets.Length; i++)
+            {
+                Object asset = Target.Assets[i];
+
+                if (asset == null)
+                {
+                    continue;
+                }
+
+                if (!DrawAsset(asset))
+                {
+                    i--;
+                    EditorUtility.SetDirty(Target);
+                }
+            }
+        }
+    
+        private bool DrawAsset(Object asset)
+        {
+            EditorGUIUtility.SetIconSize(16f * Vector2.one);
+            EditorGUILayout.BeginHorizontal();
+            {
+                GUIContent content = EditorGUIUtility.ObjectContent(asset, asset.GetType());
+                content.text = asset.name;
+                content.tooltip = AssetDatabase.GetAssetPath(asset);
+
+                float contentWidth = Styles.ToolbarButtonLeft.CalcSize(content).x;
+
+                if (GUILayout.Button(content, Styles.ToolbarButtonLeft))
+                {
+                    Selection.activeObject = asset;
+                }
+
+                if (GUILayout.Button(Icons.Trash, EditorStyles.toolbarButton, GUILayout.Width(32f)))
+                {
+                    return Target.RemoveAsset(asset);
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+
+            return true;
+        }
+
+        private void HandleEvents(Rect rect, Event evt)
+        {
             switch (evt.type)
             {
                 case EventType.DragPerform:
@@ -97,54 +155,55 @@ namespace PinnedAssets
                         {
                             Target.AddAsset(item);
                         }
+
+                        EditorUtility.SetDirty(Target);
                     }
 
                     break;
 
             } 
         }
-
-        private void DrawElements()
-        {
-            for (int i = 0; i < Target.Assets.Length; i++)
-            {
-                Object asset = Target.Assets[i];
-
-                EditorGUILayout.BeginHorizontal();
-                {
-                    GUIContent content = new GUIContent(EditorGUIUtility.ObjectContent(asset, asset.GetType()));
-                    content.text = asset.name;
-
-                    if (GUILayout.Button(Icons.Trash, GUILayout.Width(32f)))
-                    {
-                        Target.RemoveAsset(asset);
-                        i--;
-                    }
-                    
-                    if (GUILayout.Button(content, Styles.ToolbarButtonLeft))
-                    {
-                        Selection.activeObject = asset;
-                    }
-                }
-                EditorGUILayout.EndHorizontal();
-            }
-        }
     }
 
     public static class Icons
     {
+        public static GUIContent Select = EditorGUIUtility.IconContent("d_scenepicking_pickable-mixed");
         public static GUIContent Trash = EditorGUIUtility.IconContent("d_TreeEditor.Trash");
     }
 
     public static class Styles 
     {
-        public static readonly GUIStyle ToolbarButtonLeft;
+        public static readonly GUIStyle Title;
 
+        public static readonly GUIStyle ToolbarNoStretch;
+        public static readonly GUIStyle ToolbarNoStretchLeft;
+        public static readonly GUIStyle ToolbarButtonLeft;
+        
         static Styles()
         {
+            // - Labels
+
+            Title = new GUIStyle(EditorStyles.boldLabel)
+            {
+                fontSize = 18,
+            };
+
+            // - Toolbars
+
+            ToolbarNoStretch = new GUIStyle(EditorStyles.toolbarButton)
+            {
+                stretchWidth = false
+            };
+
+            ToolbarNoStretchLeft = new GUIStyle(ToolbarNoStretch)
+            {
+                alignment = TextAnchor.MiddleLeft,
+            };
+
             ToolbarButtonLeft = new GUIStyle(EditorStyles.toolbarButton)
             {
-                alignment = TextAnchor.MiddleLeft
+                stretchWidth = true,
+                alignment = TextAnchor.MiddleLeft,
             };
         }
     }
