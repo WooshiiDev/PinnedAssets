@@ -112,6 +112,7 @@ namespace PinnedAssets
             {
                 GUIContent content = EditorGUIUtility.ObjectContent(asset, asset.GetType());
                 content.text = asset.name;
+                content.tooltip = AssetDatabase.GetAssetPath(asset);
 
                 float contentWidth = Styles.ToolbarButtonLeft.CalcSize(content).x;
 
@@ -119,7 +120,6 @@ namespace PinnedAssets
                 {
                     Selection.activeObject = asset;
                 }
-
 
                 if (GUILayout.Button(Icons.Trash, EditorStyles.toolbarButton, GUILayout.Width(32f)))
                 {
