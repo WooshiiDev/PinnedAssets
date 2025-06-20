@@ -64,17 +64,60 @@ namespace PinnedAssets
 
         public override void OnInspectorGUI()
         {
-
-            // Contents
-
             Rect rect = EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.MinHeight(100f));
             {
-                DrawElements();
+                DrawAssets();
             }
             EditorGUILayout.EndVertical();
 
-            Event evt = Event.current;
+            HandleEvents(rect, Event.current);
+        }
 
+        private void DrawAssets()
+        {
+            for (int i = 0; i < Target.Assets.Length; i++)
+            {
+                Object asset = Target.Assets[i];
+
+                if (asset == null)
+                {
+                    continue;
+                }
+
+                if (!DrawAsset(asset))
+                {
+                    i--;
+                }
+            }
+        }
+    
+        private bool DrawAsset(Object asset)
+        {
+            float len = EditorGUIUtility.labelWidth;
+            EditorGUILayout.BeginHorizontal();
+            {
+                GUIContent content = new GUIContent(EditorGUIUtility.ObjectContent(asset, asset.GetType()));
+                content.text = asset.name;
+
+                EditorGUIUtility.labelWidth = Styles.ToolbarButtonLeft.CalcSize(content).x;
+                if (GUILayout.Button(content, Styles.ToolbarButtonLeft))
+                {
+                    Selection.activeObject = asset;
+                }
+                EditorGUIUtility.labelWidth = len;
+
+                if (GUILayout.Button(Icons.Trash, GUILayout.Width(32f)))
+                {
+                    return Target.RemoveAsset(asset);
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+
+            return true;
+        }
+
+        private void HandleEvents(Rect rect, Event evt)
+        {
             switch (evt.type)
             {
                 case EventType.DragPerform:
@@ -95,39 +138,11 @@ namespace PinnedAssets
 
                         foreach (Object item in DragAndDrop.objectReferences)
                         {
-                            Debug.Log(item);
                             Target.AddAsset(item);
                         }
                     }
 
                     break;
-
-            } 
-        }
-
-        private void DrawElements()
-        {
-            for (int i = 0; i < Target.Assets.Length; i++)
-            {
-                Object asset = Target.Assets[i];
-
-                EditorGUILayout.BeginHorizontal();
-                {
-                    GUIContent content = new GUIContent(EditorGUIUtility.ObjectContent(asset, asset.GetType()));
-                    content.text = asset.name;
-
-                    if (GUILayout.Button(content, Styles.ToolbarButtonLeft))
-                    {
-                        Selection.activeObject = asset;
-                    }
-
-                    if (GUILayout.Button(Icons.Trash, GUILayout.Width(32f)))
-                    {
-                        Target.RemoveAsset(asset);
-                        i--;
-                    }
-                }
-                EditorGUILayout.EndHorizontal();
             }
         }
     }
@@ -145,7 +160,7 @@ namespace PinnedAssets
         {
             ToolbarButtonLeft = new GUIStyle(EditorStyles.toolbarButton)
             {
-                alignment = TextAnchor.MiddleLeft
+                alignment = TextAnchor.MiddleLeft,
             };
         }
     }
