@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using Object = UnityEngine.Object;
+using System;
 
 namespace PinnedAssets
 {
@@ -50,6 +51,21 @@ namespace PinnedAssets
 
             return profile;
         }
+
+        public void DeleteProfile(PinnedProfileData profile)
+        {
+            if (profile == null)
+            {
+                throw new NullReferenceException();
+            }
+
+            if (!profiles.Contains(profile))
+            {
+                Debug.LogWarning($"Cannot delete Pinned Profile {profile.Name} as it does not exist on asset {name}.");
+            }
+
+            profiles.Remove(profile);
+        }
     }
 
     [CustomEditor(typeof(PinnedAssetsData))]
@@ -60,6 +76,7 @@ namespace PinnedAssets
         private string search = string.Empty;
         private bool performDrag;
 
+        private int profileIndex;
         private PinnedProfileData currentProfile;
 
         // - Properties
@@ -96,6 +113,44 @@ namespace PinnedAssets
         private void DrawContentHeader()
         {
             EditorGUILayout.LabelField("Pinned Assets", Styles.Title);
+
+            EditorGUILayout.BeginHorizontal();
+            {
+                if (GUILayout.Button("+", GUILayout.Width(32f)))
+                {
+                    currentProfile = Target.CreateProfile();
+                }
+
+                EditorGUI.BeginChangeCheck();
+                profileIndex = EditorGUILayout.Popup(profileIndex, GetProfileNames(), GUILayout.Width(19f));
+                if (EditorGUI.EndChangeCheck())
+                {
+                    currentProfile = Target.GetProfile(profileIndex);
+                }
+
+                EditorGUI.BeginChangeCheck();
+                string name = EditorGUILayout.DelayedTextField(currentProfile.Name, EditorStyles.label);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    currentProfile.SetName(name);
+                }
+
+                GUILayout.FlexibleSpace();
+
+                EditorGUI.BeginDisabledGroup(Target.Profiles.Length == 1);
+                if (GUILayout.Button(Icons.Trash, EditorStyles.toolbarButton, GUILayout.Width(32f)))
+                {
+                    if (EditorUtility.DisplayDialog("Remove Profile", $"Would you like to delete {currentProfile.Name}?", "Yes", "No"))
+                    {
+                        Target.DeleteProfile(currentProfile);
+
+                        profileIndex = Mathf.Clamp(profileIndex, 0, Target.Profiles.Length - 1);
+                        currentProfile = Target.Profiles[profileIndex];
+                    }
+                }
+                EditorGUI.EndDisabledGroup();
+            }
+            EditorGUILayout.EndHorizontal();
         }
 
         private void DrawContentFooter()
@@ -227,12 +282,27 @@ namespace PinnedAssets
             }
             return filteredAssets.ToArray();
         }
+    
+        // - Utils
+
+        private string[] GetProfileNames()
+        {
+            List<string> names = new List<string>();
+            
+            for (int i = 0; i < Target.Profiles.Length; i++)
+            {
+                names.Add(Target.Profiles[i].Name);
+            }
+
+            return names.ToArray();
+        }
     }
 
     public static class Icons
     {
         public static GUIContent Select = EditorGUIUtility.IconContent("d_scenepicking_pickable-mixed");
         public static GUIContent Trash = EditorGUIUtility.IconContent("d_TreeEditor.Trash");
+        public static GUIContent Dropdown = EditorGUIUtility.IconContent("d_icon dropdown");
     }
 
     public static class Styles 
