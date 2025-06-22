@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEditor;
 using Object = UnityEngine.Object;
 using System;
+using static Codice.CM.WorkspaceServer.WorkspaceTreeDataStore;
 
 namespace PinnedAssets
 {
@@ -328,11 +329,19 @@ namespace PinnedAssets
             // Calculate the length difference between the width given and the style size of the content
 
             int len = content.text.Length;
-            float ratio = width / EditorStyles.label.CalcSize(content).x;
 
-            // Round it to fit into text length
+            if (len == 0)
+            {
+                return 0;
+            }
 
+            float ratio = GetGUIContentVisibleRatio(content, width, style);
             return Mathf.Min(Mathf.FloorToInt(ratio * len), len);
+        }
+
+        private float GetGUIContentVisibleRatio(GUIContent content, float width, GUIStyle style)
+        {
+            return width / style.CalcSize(content).x;
         }
     }
 
