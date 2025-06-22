@@ -186,13 +186,12 @@ namespace PinnedAssets
         private bool DrawAsset(Object asset)
         {
             EditorGUIUtility.SetIconSize(16f * Vector2.one);
-            EditorGUILayout.BeginHorizontal();
+            Rect r = EditorGUILayout.BeginHorizontal();
             {
                 GUIContent content = EditorGUIUtility.ObjectContent(asset, asset.GetType());
                 content.text = asset.name;
                 content.tooltip = AssetDatabase.GetAssetPath(asset);
-
-                float contentWidth = Styles.ToolbarButtonLeft.CalcSize(content).x;
+                content = GetVisibleStringWidth(content, r.width, Styles.ToolbarButtonLeft);
 
                 if (GUILayout.Button(content, Styles.ToolbarButtonLeft))
                 {
@@ -295,6 +294,45 @@ namespace PinnedAssets
             }
 
             return names.ToArray();
+        }
+
+        private GUIContent GetVisibleStringWidth(GUIContent content, float width, GUIStyle style)
+        {
+            if (string.IsNullOrEmpty(content.text))
+            {
+                return GUIContent.none;
+            }
+
+            // Get current length of content 
+
+            int textLength = content.text.Length;
+            int contentLen = GetIconContentVisibleLength(content, width, style);
+
+            // Return early if the string fits
+            
+            if (contentLen == textLength) 
+            {
+                return content;
+            }
+            
+            if (contentLen >= 0)
+            {
+                content.text = content.text.Substring(0, contentLen);
+            }
+
+            return content;
+        }
+
+        private int GetIconContentVisibleLength(GUIContent content, float width, GUIStyle style)
+        {
+            // Calculate the length difference between the width given and the style size of the content
+
+            int len = content.text.Length;
+            float ratio = width / EditorStyles.label.CalcSize(content).x;
+
+            // Round it to fit into text length
+
+            return Mathf.Min(Mathf.FloorToInt(ratio * len), len);
         }
     }
 
