@@ -1,0 +1,76 @@
+using System;
+using System.Collections.Generic;
+using Codice.Client.Common;
+using UnityEditor;
+using UnityEngine;
+using Object = UnityEngine.Object;
+
+namespace PinnedAssets
+{
+    [Serializable]
+    public class PinnedProfileData
+    {
+        // - Fields
+
+        [SerializeField] private string name;
+        [SerializeField] private List<Object> assets = new List<Object>();
+
+        // - Properties
+
+        public string Name => name;
+        public Object[] Assets => assets.ToArray();
+
+        // - Creation
+
+        public PinnedProfileData(string name)
+        {
+            this.name = name;
+        }
+
+        // - Methods
+
+        /// <summary>
+        /// Add an asset to the container.
+        /// </summary>
+        /// <param name="asset">The asset to add.</param>
+        /// <exception cref="NullReferenceException">This exception will be thrown if the asset passed is null.</exception>
+        public void AddAsset(Object asset)
+        {
+            if (asset == null)
+            {
+                throw new NullReferenceException();
+            }
+
+            if (!assets.Contains(asset))
+            {
+                assets.Add(asset);
+            }
+        }
+
+        /// <summary>
+        /// Remove an asset from the container.
+        /// </summary>
+        /// <param name="asset">The asset to remove.</param>
+        /// <exception cref="NullReferenceException">This exception will be thrown if the asset passed is null.</exception>
+        /// <returns>Returns true if the asset is successfully deleted otherwise this will return false.</returns>
+        public bool RemoveAsset(Object asset)
+        {
+            if (asset == null)
+            {
+                throw new NullReferenceException();
+            }
+
+            return assets.Remove(asset);
+        }
+
+        public void SetName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                return;
+            }
+
+            this.name = name;
+        }
+    }
+}

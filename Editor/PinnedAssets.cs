@@ -1,57 +1,70 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using System;
 using Object = UnityEngine.Object;
-using UnityEngine.UIElements;
-using Unity.VisualScripting;
-using Codice.Client.BaseCommands;
+using System;
 
 namespace PinnedAssets
 {
     [CreateAssetMenu(fileName = "Pinned Assets Profile", menuName = "Pinned Assets Profile")]
     public class PinnedAssetsData : ScriptableObject
     {
+        private const string DEFAULT_PROFILE_NAME = "New Profile";
+
         // - Fields
 
-        [SerializeField] private List<Object> assets = new List<Object>();
+        [SerializeField]
+        private List<PinnedProfileData> profiles = new List<PinnedProfileData>()
+        {
+            new PinnedProfileData("Default")
+        };
 
         // - Properties
 
-        public Object[] Assets => assets.ToArray();
+        public PinnedProfileData[] Profiles => profiles.ToArray();
 
-        /// <summary>
-        /// Add an asset to the container.
-        /// </summary>
-        /// <param name="asset">The asset to add.</param>
-        /// <exception cref="NullReferenceException">This exception will be thrown if the asset passed is null.</exception>
-        public void AddAsset(Object asset)
+        // - Methods
+
+        public PinnedProfileData GetProfile(int i)
         {
-            if (asset == null)
+            if (i < 0 || i > profiles.Count)
             {
-                throw new NullReferenceException();
+                return profiles[0];
             }
 
-            if (!assets.Contains(asset))
-            {
-                assets.Add(asset);
-            }
+            return profiles[i];
         }
 
-        /// <summary>
-        /// Remove an asset from the container.
-        /// </summary>
-        /// <param name="asset">The asset to remove.</param>
-        /// <exception cref="NullReferenceException">This exception will be thrown if the asset passed is null.</exception>
-        /// <returns>Returns true if the asset is successfully deleted otherwise this will return false.</returns>
-        public bool RemoveAsset(Object asset)
+        public PinnedProfileData CreateProfile()
         {
-            if (asset == null)
+            return CreateProfile($"{DEFAULT_PROFILE_NAME} {Profiles.Length}");
+        }
+
+        public PinnedProfileData CreateProfile(string name)
+        {
+            PinnedProfileData profile = new PinnedProfileData(name);
+            profile.SetName(name);
+
+            profiles.Add(profile);
+
+            AssetDatabase.SaveAssets();
+
+            return profile;
+        }
+
+        public void DeleteProfile(PinnedProfileData profile)
+        {
+            if (profile == null)
             {
                 throw new NullReferenceException();
             }
 
-            return assets.Remove(asset);
+            if (!profiles.Contains(profile))
+            {
+                Debug.LogWarning($"Cannot delete Pinned Profile {profile.Name} as it does not exist on asset {name}.");
+            }
+
+            profiles.Remove(profile);
         }
     }
 
@@ -60,13 +73,22 @@ namespace PinnedAssets
     {
         // - Fields
 
-        private string search;
+        private string search = string.Empty;
+        private bool performDrag;
+
+        private int profileIndex;
+        private PinnedProfileData currentProfile;
 
         // - Properties
 
         private PinnedAssetsData Target => target as PinnedAssetsData;
 
         // - Methods
+
+        private void OnEnable()
+        {
+            currentProfile = Target.GetProfile(0);
+        }
 
         public override void OnInspectorGUI()
         {
@@ -79,11 +101,56 @@ namespace PinnedAssets
             EditorGUILayout.EndVertical();
 
             HandleEvents(rect, Event.current);
+
+            if (performDrag)
+            {
+                Handles.BeginGUI();
+                Handles.DrawSolidRectangleWithOutline(rect, Color.clear, Color.grey);
+                Handles.EndGUI();
+            }
         }
 
         private void DrawContentHeader()
         {
             EditorGUILayout.LabelField("Pinned Assets", Styles.Title);
+
+            EditorGUILayout.BeginHorizontal();
+            {
+                if (GUILayout.Button("+", GUILayout.Width(32f)))
+                {
+                    currentProfile = Target.CreateProfile();
+                }
+
+                EditorGUI.BeginChangeCheck();
+                profileIndex = EditorGUILayout.Popup(profileIndex, GetProfileNames(), GUILayout.Width(19f));
+                if (EditorGUI.EndChangeCheck())
+                {
+                    currentProfile = Target.GetProfile(profileIndex);
+                }
+
+                EditorGUI.BeginChangeCheck();
+                string name = EditorGUILayout.DelayedTextField(currentProfile.Name, EditorStyles.label);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    currentProfile.SetName(name);
+                }
+
+                GUILayout.FlexibleSpace();
+
+                EditorGUI.BeginDisabledGroup(Target.Profiles.Length == 1);
+                if (GUILayout.Button(Icons.Trash, EditorStyles.toolbarButton, GUILayout.Width(32f)))
+                {
+                    if (EditorUtility.DisplayDialog("Remove Profile", $"Would you like to delete {currentProfile.Name}?", "Yes", "No"))
+                    {
+                        Target.DeleteProfile(currentProfile);
+
+                        profileIndex = Mathf.Clamp(profileIndex, 0, Target.Profiles.Length - 1);
+                        currentProfile = Target.Profiles[profileIndex];
+                    }
+                }
+                EditorGUI.EndDisabledGroup();
+            }
+            EditorGUILayout.EndHorizontal();
         }
 
         private void DrawContentFooter()
@@ -96,7 +163,7 @@ namespace PinnedAssets
             search = EditorGUILayout.TextField(search, EditorStyles.toolbarSearchField);
 
             Object[] assets = string.IsNullOrEmpty(search)
-                ? Target.Assets
+                ? currentProfile.Assets
                 : GetFilteredAssets(search);
 
             for (int i = 0; i < assets.Length; i++)
@@ -115,7 +182,7 @@ namespace PinnedAssets
                 }
             }
         }
-    
+
         private bool DrawAsset(Object asset)
         {
             EditorGUIUtility.SetIconSize(16f * Vector2.one);
@@ -134,7 +201,7 @@ namespace PinnedAssets
 
                 if (GUILayout.Button(Icons.Trash, EditorStyles.toolbarButton, GUILayout.Width(32f)))
                 {
-                    return Target.RemoveAsset(asset);
+                    return currentProfile.RemoveAsset(asset);
                 }
             }
             EditorGUILayout.EndHorizontal();
@@ -154,6 +221,8 @@ namespace PinnedAssets
                         return;
                     }
 
+                    performDrag = true;
+
                     // Copy over
 
                     DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
@@ -164,12 +233,17 @@ namespace PinnedAssets
 
                         foreach (Object item in DragAndDrop.objectReferences)
                         {
-                            Target.AddAsset(item);
+                            currentProfile.AddAsset(item);
                         }
 
                         EditorUtility.SetDirty(Target);
+                        performDrag = false;
                     }
 
+                    break;
+
+                case EventType.DragExited:
+                    performDrag = false;
                     break;
 
             } 
@@ -177,17 +251,27 @@ namespace PinnedAssets
   
         private Object[] GetFilteredAssets(string query)
         {
+            return GetFilertedAssets(currentProfile.Assets, query);
+        }
+
+        private Object[] GetFilertedAssets(Object[] assets, string query)
+        {
+            if (assets == null)
+            {
+                return null;
+            }
+
             if (string.IsNullOrEmpty(query))
             {
-                return Target.Assets;
+                return assets;
             }
 
             query = query.ToLower().Trim();
 
             List<Object> filteredAssets = new List<Object>();
-            for (int i = 0; i < Target.Assets.Length; i++)
+            for (int i = 0; i < assets.Length; i++)
             {
-                Object asset = Target.Assets[i];
+                Object asset = assets[i];
                 string name = asset.name.ToLower();
                 string type = asset.GetType().Name.ToLower();
 
@@ -198,12 +282,27 @@ namespace PinnedAssets
             }
             return filteredAssets.ToArray();
         }
+    
+        // - Utils
+
+        private string[] GetProfileNames()
+        {
+            List<string> names = new List<string>();
+            
+            for (int i = 0; i < Target.Profiles.Length; i++)
+            {
+                names.Add(Target.Profiles[i].Name);
+            }
+
+            return names.ToArray();
+        }
     }
 
     public static class Icons
     {
         public static GUIContent Select = EditorGUIUtility.IconContent("d_scenepicking_pickable-mixed");
         public static GUIContent Trash = EditorGUIUtility.IconContent("d_TreeEditor.Trash");
+        public static GUIContent Dropdown = EditorGUIUtility.IconContent("d_icon dropdown");
     }
 
     public static class Styles 
