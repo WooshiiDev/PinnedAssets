@@ -31,6 +31,7 @@ namespace PinnedAssets
                 multiSelect = true,
 
                 drawElementCallback = OnElementDraw,
+                onReorderCallbackWithDetails = OnElementReorder,
                 onSelectCallback = OnElementSelect
             };
         }
@@ -74,6 +75,12 @@ namespace PinnedAssets
             }
 
             Selection.objects = selectedObjects;
+        }
+
+        private void OnElementReorder(ReorderableList list, int a, int b)
+        {
+            data.Profile.Move(a, b);
+            data.RefreshAssets();
         }
 
         // - Rect setup

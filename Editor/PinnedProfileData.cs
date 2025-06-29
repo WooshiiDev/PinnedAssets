@@ -89,5 +89,19 @@ namespace PinnedAssets
 
             this.name = name;
         }
+    
+        public bool Move(int oldIndex, int newIndex)
+        {
+            if (oldIndex == newIndex)
+            {
+                return false;
+            }
+
+            Object asset = assets[oldIndex];
+            assets.RemoveAt(oldIndex);
+            assets.Insert(newIndex, asset);
+
+            return true;
+        }
     }
 }

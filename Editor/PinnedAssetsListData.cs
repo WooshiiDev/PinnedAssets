@@ -83,7 +83,7 @@ namespace PinnedAssets
         /// <summary>
         /// Update the assets this list contains.
         /// </summary>
-        private void RefreshAssets()
+        public void RefreshAssets()
         {
             assets.Clear();
 
