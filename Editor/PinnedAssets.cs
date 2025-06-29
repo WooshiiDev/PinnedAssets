@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEditor;
 using Object = UnityEngine.Object;
 using System;
+using static Codice.CM.WorkspaceServer.WorkspaceTreeDataStore;
+using Unity.VisualScripting;
 
 namespace PinnedAssets
 {
@@ -19,9 +21,23 @@ namespace PinnedAssets
             new PinnedProfileData("Default")
         };
 
+        [SerializeField]
+        private PinnedAssetsListData display = new PinnedAssetsListData();
+
         // - Properties
 
         public PinnedProfileData[] Profiles => profiles.ToArray();
+        public PinnedAssetsListData Display
+        {
+            get
+            {
+                if (display == null)
+                {
+                    display = new PinnedAssetsListData();
+                }
+                return display;
+            }
+        }
 
         // - Methods
 
@@ -77,17 +93,32 @@ namespace PinnedAssets
         private bool performDrag;
 
         private int profileIndex;
-        private PinnedProfileData currentProfile;
+        private PinnedAssetsListView list;
 
         // - Properties
 
         private PinnedAssetsData Target => target as PinnedAssetsData;
+        private PinnedAssetsListData Data => Target.Display;
 
         // - Methods
 
         private void OnEnable()
         {
-            currentProfile = Target.GetProfile(0);
+            list = new PinnedAssetsListView(Target.Display, serializedObject);
+            Target.Display.Profile = Target.GetProfile(0);
+
+            PinnedAssetsListData.OnAssetsChanged += RefreshList;
+        }
+
+        private void OnDisable()
+        {
+            PinnedAssetsListData.OnAssetsChanged -= RefreshList;
+        }
+
+        private void RefreshList(IEnumerable<Object> assets)
+        {
+            EditorUtility.SetDirty(Target);
+            serializedObject.Update();
         }
 
         public override void OnInspectorGUI()
@@ -118,21 +149,21 @@ namespace PinnedAssets
             {
                 if (GUILayout.Button("+", GUILayout.Width(32f)))
                 {
-                    currentProfile = Target.CreateProfile();
+                    Data.Profile = Target.CreateProfile();
                 }
 
                 EditorGUI.BeginChangeCheck();
                 profileIndex = EditorGUILayout.Popup(profileIndex, GetProfileNames(), GUILayout.Width(19f));
                 if (EditorGUI.EndChangeCheck())
                 {
-                    currentProfile = Target.GetProfile(profileIndex);
+                    Data.Profile = Target.GetProfile(profileIndex);
                 }
 
                 EditorGUI.BeginChangeCheck();
-                string name = EditorGUILayout.DelayedTextField(currentProfile.Name, EditorStyles.label);
+                string name = EditorGUILayout.DelayedTextField(Data.Profile.Name, EditorStyles.label);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    currentProfile.SetName(name);
+                    Data.Profile.SetName(name);
                 }
 
                 GUILayout.FlexibleSpace();
@@ -140,12 +171,12 @@ namespace PinnedAssets
                 EditorGUI.BeginDisabledGroup(Target.Profiles.Length == 1);
                 if (GUILayout.Button(Icons.Trash, EditorStyles.toolbarButton, GUILayout.Width(32f)))
                 {
-                    if (EditorUtility.DisplayDialog("Remove Profile", $"Would you like to delete {currentProfile.Name}?", "Yes", "No"))
+                    if (EditorUtility.DisplayDialog("Remove Profile", $"Would you like to delete {Data.Profile.Name}?", "Yes", "No"))
                     {
-                        Target.DeleteProfile(currentProfile);
+                        Target.DeleteProfile(Data.Profile);
 
                         profileIndex = Mathf.Clamp(profileIndex, 0, Target.Profiles.Length - 1);
-                        currentProfile = Target.Profiles[profileIndex];
+                        Data.SetProfile(Target.Profiles[profileIndex]);
                     }
                 }
                 EditorGUI.EndDisabledGroup();
@@ -160,53 +191,14 @@ namespace PinnedAssets
 
         private void DrawAssets()
         {
+            EditorGUI.BeginChangeCheck();
             search = EditorGUILayout.TextField(search, EditorStyles.toolbarSearchField);
-
-            Object[] assets = string.IsNullOrEmpty(search)
-                ? currentProfile.Assets
-                : GetFilteredAssets(search);
-
-            for (int i = 0; i < assets.Length; i++)
+            if (EditorGUI.EndChangeCheck())
             {
-                Object asset = assets[i];
-
-                if (asset == null)
-                {
-                    continue;
-                }
-
-                if (!DrawAsset(asset))
-                {
-                    i--;
-                    EditorUtility.SetDirty(Target);
-                }
+                Data.ApplyFilter(search);
             }
-        }
 
-        private bool DrawAsset(Object asset)
-        {
-            EditorGUIUtility.SetIconSize(16f * Vector2.one);
-            EditorGUILayout.BeginHorizontal();
-            {
-                GUIContent content = EditorGUIUtility.ObjectContent(asset, asset.GetType());
-                content.text = asset.name;
-                content.tooltip = AssetDatabase.GetAssetPath(asset);
-
-                float contentWidth = Styles.ToolbarButtonLeft.CalcSize(content).x;
-
-                if (GUILayout.Button(content, Styles.ToolbarButtonLeft))
-                {
-                    Selection.activeObject = asset;
-                }
-
-                if (GUILayout.Button(Icons.Trash, EditorStyles.toolbarButton, GUILayout.Width(32f)))
-                {
-                    return currentProfile.RemoveAsset(asset);
-                }
-            }
-            EditorGUILayout.EndHorizontal();
-
-            return true;
+            list.Draw();
         }
 
         private void HandleEvents(Rect rect, Event evt)
@@ -230,13 +222,7 @@ namespace PinnedAssets
                     if (evt.type == EventType.DragPerform)
                     {
                         DragAndDrop.AcceptDrag();
-
-                        foreach (Object item in DragAndDrop.objectReferences)
-                        {
-                            currentProfile.AddAsset(item);
-                        }
-
-                        EditorUtility.SetDirty(Target);
+                        Data.AddRange(DragAndDrop.objectReferences);
                         performDrag = false;
                     }
 
@@ -248,41 +234,7 @@ namespace PinnedAssets
 
             } 
         }
-  
-        private Object[] GetFilteredAssets(string query)
-        {
-            return GetFilertedAssets(currentProfile.Assets, query);
-        }
 
-        private Object[] GetFilertedAssets(Object[] assets, string query)
-        {
-            if (assets == null)
-            {
-                return null;
-            }
-
-            if (string.IsNullOrEmpty(query))
-            {
-                return assets;
-            }
-
-            query = query.ToLower().Trim();
-
-            List<Object> filteredAssets = new List<Object>();
-            for (int i = 0; i < assets.Length; i++)
-            {
-                Object asset = assets[i];
-                string name = asset.name.ToLower();
-                string type = asset.GetType().Name.ToLower();
-
-                if (name.Contains(query) || type.Contains(query))
-                {
-                    filteredAssets.Add(asset);
-                }
-            }
-            return filteredAssets.ToArray();
-        }
-    
         // - Utils
 
         private string[] GetProfileNames()
@@ -326,7 +278,8 @@ namespace PinnedAssets
 
             ToolbarNoStretch = new GUIStyle(EditorStyles.toolbarButton)
             {
-                stretchWidth = false
+                stretchWidth = false,
+                fixedHeight = 0,
             };
 
             ToolbarNoStretchLeft = new GUIStyle(ToolbarNoStretch)
@@ -337,6 +290,10 @@ namespace PinnedAssets
             ToolbarButtonLeft = new GUIStyle(EditorStyles.toolbarButton)
             {
                 stretchWidth = true,
+                stretchHeight = true,
+
+                fixedHeight = 0,
+
                 alignment = TextAnchor.MiddleLeft,
             };
         }
