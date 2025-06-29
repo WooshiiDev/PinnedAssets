@@ -63,6 +63,23 @@ namespace PinnedAssets
             return assets.Remove(asset);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException"></exception>
+        public bool RemoveAsset(int index)
+        {
+            if (index < 0 || index >= assets.Count)
+            {
+                throw new IndexOutOfRangeException();
+            }
+
+            assets.RemoveAt(index);
+            return true;
+        }
+
         public void SetName(string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -71,6 +88,20 @@ namespace PinnedAssets
             }
 
             this.name = name;
+        }
+    
+        public bool Move(int oldIndex, int newIndex)
+        {
+            if (oldIndex == newIndex)
+            {
+                return false;
+            }
+
+            Object asset = assets[oldIndex];
+            assets.RemoveAt(oldIndex);
+            assets.Insert(newIndex, asset);
+
+            return true;
         }
     }
 }
