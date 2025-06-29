@@ -11,11 +11,17 @@ namespace PinnedAssets
     [Serializable]
     public class PinnedAssetsListData
     {
-        public delegate void ListMutatedDelegate(IEnumerable<object> assets);
+        public delegate void ListMutatedDelegate(IEnumerable<Object> assets);
 
+        /// <summary>
+        /// Event called when <see cref="Profile"/> has been changed.
+        /// </summary>
         public static event ListMutatedDelegate OnProfileChange;
-        public static event ListMutatedDelegate OnAssetsAddedChange;
-        public static event ListMutatedDelegate OnAssetsRemovedChange;
+
+        /// <summary>
+        /// Event called when any data change occurs. Useful for generic updates or data validation.
+        /// </summary>
+        public static event ListMutatedDelegate OnAssetsChanged;
 
         [SerializeField] private PinnedProfileData profile;
         [SerializeField] private List<Object> assets = new List<Object>();
@@ -84,10 +90,12 @@ namespace PinnedAssets
             if (HasValidFilter)
             {
                 assets.AddRange(GetFilteredAssets(filter));
+                OnAssetsChanged?.Invoke(assets);
                 return;
             }
 
             assets.AddRange(profile.Assets);
+            OnAssetsChanged?.Invoke(assets);
         }
 
         /// <summary>

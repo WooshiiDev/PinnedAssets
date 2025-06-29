@@ -106,6 +106,19 @@ namespace PinnedAssets
         {
             list = new PinnedAssetsListView(Target.Display, serializedObject);
             Target.Display.Profile = Target.GetProfile(0);
+
+            PinnedAssetsListData.OnAssetsChanged += RefreshList;
+        }
+
+        private void OnDisable()
+        {
+            PinnedAssetsListData.OnAssetsChanged -= RefreshList;
+        }
+
+        private void RefreshList(IEnumerable<Object> assets)
+        {
+            EditorUtility.SetDirty(Target);
+            serializedObject.Update();
         }
 
         public override void OnInspectorGUI()
@@ -183,7 +196,6 @@ namespace PinnedAssets
             if (EditorGUI.EndChangeCheck())
             {
                 Data.ApplyFilter(search);
-                serializedObject.Update();
             }
 
             list.Draw();
@@ -210,12 +222,7 @@ namespace PinnedAssets
                     if (evt.type == EventType.DragPerform)
                     {
                         DragAndDrop.AcceptDrag();
-
                         Data.AddRange(DragAndDrop.objectReferences);
-
-                        EditorUtility.SetDirty(Target);
-                        serializedObject.Update();
-
                         performDrag = false;
                     }
 
