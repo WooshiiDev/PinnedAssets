@@ -1,0 +1,12 @@
+{
+  "name": "com.wooshii.pinnedassets",
+  "displayName": "Pinned Assets",
+  "version": "0.0.1",
+  "unity": "2023.2",
+  "description": "Pinned Assets adds a convenient way to pin commonly used assets, prefabs and components.",
+  "keywords": [
+    "editor"
+  ],
+  "category": "Editor",
+  "dependencies": {}
+}
