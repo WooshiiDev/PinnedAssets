@@ -6,14 +6,14 @@ using Object = UnityEngine.Object;
 
 namespace PinnedAssets
 {
-    public sealed class PinnedAssetListView
+    public sealed class PinnedAssetsListView
     {
         private PinnedAssetsListData data;
 
         private SerializedObject serializedObject;
         private ReorderableList list;
 
-        public PinnedAssetListView(PinnedAssetsListData data, SerializedObject serializedObject)
+        public PinnedAssetsListView(PinnedAssetsListData data, SerializedObject serializedObject)
         {
             this.data = data;
             this.serializedObject = serializedObject;

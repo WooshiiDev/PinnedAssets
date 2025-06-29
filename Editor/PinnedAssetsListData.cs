@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using NUnit.Framework.Constraints;
+using PlasticPipe.PlasticProtocol.Messages;
 using UnityEditor.VersionControl;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -10,6 +11,12 @@ namespace PinnedAssets
     [Serializable]
     public class PinnedAssetsListData
     {
+        public delegate void ListMutatedDelegate(IEnumerable<object> assets);
+
+        public static event ListMutatedDelegate OnProfileChange;
+        public static event ListMutatedDelegate OnAssetsAddedChange;
+        public static event ListMutatedDelegate OnAssetsRemovedChange;
+
         [SerializeField] private PinnedProfileData profile;
         [SerializeField] private List<Object> assets = new List<Object>();
         [SerializeField] private string filter;
@@ -53,6 +60,8 @@ namespace PinnedAssets
         {
             this.profile = profile;
             ApplyFilter(string.Empty);
+
+            OnProfileChange?.Invoke(assets);
         }
 
         /// <summary>

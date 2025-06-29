@@ -93,7 +93,7 @@ namespace PinnedAssets
         private bool performDrag;
 
         private int profileIndex;
-        private PinnedAssetListView list;
+        private PinnedAssetsListView list;
 
         // - Properties
 
@@ -104,7 +104,7 @@ namespace PinnedAssets
 
         private void OnEnable()
         {
-            list = new PinnedAssetListView(Target.Display, serializedObject);
+            list = new PinnedAssetsListView(Target.Display, serializedObject);
             Target.Display.Profile = Target.GetProfile(0);
         }
 
