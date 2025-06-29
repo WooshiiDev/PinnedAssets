@@ -51,8 +51,16 @@ namespace PinnedAssets
                 return;
             }
 
-            EditorGUIUtility.SetIconSize(16f * Vector2.one);
             Object asset = data.DisplayedAssets[index];
+
+            if (asset == null)
+            {
+                data.RefreshAssets();
+                Selection.objects = null;
+                return;
+            }
+
+            EditorGUIUtility.SetIconSize(16f * Vector2.one);
 
             Rect labelRect = GetAssetLabelRect(rect);
             GUI.Label(labelRect, GetAssetContent(labelRect, asset));
