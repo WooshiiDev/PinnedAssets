@@ -63,6 +63,23 @@ namespace PinnedAssets
             return assets.Remove(asset);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException"></exception>
+        public bool RemoveAsset(int index)
+        {
+            if (index < 0 || index >= assets.Count)
+            {
+                throw new IndexOutOfRangeException();
+            }
+
+            assets.RemoveAt(index);
+            return true;
+        }
+
         public void SetName(string name)
         {
             if (string.IsNullOrEmpty(name))
