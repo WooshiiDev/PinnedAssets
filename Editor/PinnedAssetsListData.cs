@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO.IsolatedStorage;
 using NUnit.Framework.Constraints;
 using PlasticPipe.PlasticProtocol.Messages;
 using UnityEditor.VersionControl;
@@ -87,15 +88,26 @@ namespace PinnedAssets
         {
             assets.Clear();
 
-            if (HasValidFilter)
+            // Validate assets
+
+            for (int i = profile.Assets.Length - 1; i >= 0; i--)
             {
-                assets.AddRange(GetFilteredAssets(filter));
-                OnAssetsChanged?.Invoke(assets);
-                return;
+                Object asset = profile.Assets[i];
+
+                if (asset == null)
+                {
+                    profile.RemoveAsset(i);
+                }
             }
 
-            assets.AddRange(profile.Assets);
-            OnAssetsChanged?.Invoke(assets);
+            // Collect view 
+
+            Object[] assetList = HasValidFilter
+                ? GetFilteredAssets(filter)
+                : profile.Assets;
+
+            assets.AddRange(assetList);
+            OnAssetsChanged?.Invoke(assetList);
         }
 
         /// <summary>
@@ -157,7 +169,7 @@ namespace PinnedAssets
 
             RefreshAssets();
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -165,6 +177,7 @@ namespace PinnedAssets
         public void Remove(int index)
         {
             profile.RemoveAsset(index);
+            RefreshAssets();
         }
 
         /// <summary>
