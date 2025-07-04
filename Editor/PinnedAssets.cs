@@ -128,6 +128,11 @@ namespace PinnedAssets
             PinnedAssetsListData.OnAssetsChanged -= RefreshList;
         }
 
+        protected override void OnHeaderGUI()
+        {
+            
+        }
+
         private void SetupDisplay()
         {
             PinnedProfileData currentProfile = Data.Profile;
@@ -151,7 +156,7 @@ namespace PinnedAssets
 
         public override void OnInspectorGUI()
         {
-            Rect rect = EditorGUILayout.BeginVertical(GUI.skin.box, GUILayout.MinHeight(32f));
+            Rect rect = EditorGUILayout.BeginVertical(Styles.BoxContainer);
             {
                 DrawContentHeader();
                 DrawAssets();
@@ -171,17 +176,20 @@ namespace PinnedAssets
 
         private void DrawContentHeader()
         {
-            EditorGUILayout.LabelField("Pinned Assets", Styles.Title);
+            EditorGUILayout.BeginVertical(Styles.Toolbar);
+                EditorGUILayout.LabelField("Current Profile", Styles.Title);
+            EditorGUILayout.EndVertical();
 
-            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.BeginHorizontal(Styles.Toolbar);
             {
-                if (GUILayout.Button("+", GUILayout.Width(32f)))
+                if (GUILayout.Button(Icons.Create, EditorStyles.toolbarButton, GUILayout.Width(32f)))
                 {
                     Data.Profile = Target.CreateProfile();
                 }
 
                 EditorGUI.BeginChangeCheck();
-                profileIndex = EditorGUILayout.Popup(profileIndex, GetProfileNames(), GUILayout.Width(19f));
+                profileIndex = EditorGUILayout.Popup(profileIndex, GetProfileNames(), Styles.ToolbarDropdownImage, GUILayout.Width(32f));
+
                 if (EditorGUI.EndChangeCheck())
                 {
                     Data.Profile = Target.GetProfile(profileIndex);
@@ -194,7 +202,12 @@ namespace PinnedAssets
                     Data.Profile.SetName(name);
                 }
 
-                GUILayout.FlexibleSpace();
+                EditorGUI.BeginChangeCheck();
+                search = EditorGUILayout.TextField(search, EditorStyles.toolbarSearchField);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Data.ApplyFilter(search);
+                }
 
                 EditorGUI.BeginDisabledGroup(Target.Profiles.Length == 1);
                 if (GUILayout.Button(Icons.Trash, EditorStyles.toolbarButton, GUILayout.Width(32f)))
@@ -219,13 +232,6 @@ namespace PinnedAssets
 
         private void DrawAssets()
         {
-            EditorGUI.BeginChangeCheck();
-            search = EditorGUILayout.TextField(search, EditorStyles.toolbarSearchField);
-            if (EditorGUI.EndChangeCheck())
-            {
-                Data.ApplyFilter(search);
-            }
-
             list.Draw();
         }
 
@@ -283,15 +289,20 @@ namespace PinnedAssets
         public static GUIContent Select = EditorGUIUtility.IconContent("d_scenepicking_pickable-mixed");
         public static GUIContent Trash = EditorGUIUtility.IconContent("d_TreeEditor.Trash");
         public static GUIContent Dropdown = EditorGUIUtility.IconContent("d_icon dropdown");
+
+        public static GUIContent Create = EditorGUIUtility.IconContent("d_CreateAddNew");
+        public static GUIContent RemoveAsset = EditorGUIUtility.IconContent("CrossIcon");
     }
 
     public static class Styles 
     {
         public static readonly GUIStyle Title;
 
-        public static readonly GUIStyle ToolbarNoStretch;
-        public static readonly GUIStyle ToolbarNoStretchLeft;
-        public static readonly GUIStyle ToolbarButtonLeft;
+        public static readonly GUIStyle Toolbar;
+        public static readonly GUIStyle ToolbarButton;
+        public static readonly GUIStyle ToolbarDropdownImage;
+
+        public static readonly GUIStyle BoxContainer;
         
         static Styles()
         {
@@ -304,25 +315,43 @@ namespace PinnedAssets
 
             // - Toolbars
 
-            ToolbarNoStretch = new GUIStyle(EditorStyles.toolbarButton)
-            {
-                stretchWidth = false,
-                fixedHeight = 0,
-            };
+            Toolbar = new GUIStyle(EditorStyles.toolbar) { };
 
-            ToolbarNoStretchLeft = new GUIStyle(ToolbarNoStretch)
-            {
-                alignment = TextAnchor.MiddleLeft,
-            };
-
-            ToolbarButtonLeft = new GUIStyle(EditorStyles.toolbarButton)
+            ToolbarButton = new GUIStyle(EditorStyles.toolbarButton)
             {
                 stretchWidth = true,
                 stretchHeight = true,
 
                 fixedHeight = 0,
+            };
 
-                alignment = TextAnchor.MiddleLeft,
+            ToolbarDropdownImage = new GUIStyle(EditorStyles.toolbarDropDown)
+            {
+                imagePosition = ImagePosition.ImageOnly,
+            };
+
+            // - Containers
+
+            BoxContainer = new GUIStyle(GUI.skin.box) 
+            {
+#if UNITY_2019_1_OR_NEWER
+                stretchHeight = true,
+#endif
+                stretchWidth = true,
+
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter,
+
+                fontSize = 12,
+
+                normal =
+                {
+                    textColor = EditorStyles.label.normal.textColor,
+                },
+
+                margin = new RectOffset(0, 0, 0, 0),
+                padding = new RectOffset(0, 0, 0, 0),
+                contentOffset = new Vector2(0, 0)
             };
         }
     }

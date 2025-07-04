@@ -65,7 +65,7 @@ namespace PinnedAssets
             Rect labelRect = GetAssetLabelRect(rect);
             GUI.Label(labelRect, GetAssetContent(labelRect, asset));
 
-            if (GUI.Button(GetSmallButtonRect(rect), Icons.Trash, Styles.ToolbarNoStretch))
+            if (GUI.Button(GetSmallButtonRect(rect), Icons.Trash, Styles.ToolbarButton))
             {
                 data.Remove(asset);
                 serializedObject.Update();
@@ -120,7 +120,7 @@ namespace PinnedAssets
             content.text = asset.name;
             content.tooltip = AssetDatabase.GetAssetPath(asset);
 
-            return GetVisibleStringWidth(content, rect.width, Styles.ToolbarButtonLeft);
+            return GetVisibleStringWidth(content, rect.width, Styles.ToolbarButton);
         }
 
         private GUIContent GetVisibleStringWidth(GUIContent content, float width, GUIStyle style)
