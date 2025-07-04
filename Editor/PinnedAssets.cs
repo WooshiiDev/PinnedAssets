@@ -299,7 +299,6 @@ namespace PinnedAssets
         public static readonly GUIStyle Title;
 
         public static readonly GUIStyle Toolbar;
-        public static readonly GUIStyle ToolbarNoStretchLeft;
         public static readonly GUIStyle ToolbarButton;
         public static readonly GUIStyle ToolbarDropdownImage;
 
@@ -317,11 +316,6 @@ namespace PinnedAssets
             // - Toolbars
 
             Toolbar = new GUIStyle(EditorStyles.toolbar) { };
-
-            ToolbarNoStretchLeft = new GUIStyle(Toolbar)
-            {
-                alignment = TextAnchor.MiddleLeft,
-            };
 
             ToolbarButton = new GUIStyle(EditorStyles.toolbarButton)
             {
