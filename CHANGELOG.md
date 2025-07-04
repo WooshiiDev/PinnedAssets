@@ -1,3 +1,12 @@
+
+## 1.2.0
+
+### Changes
+
+ - GUI is more "toolbar" orientated. 
+ - Cleaned up layout above asset list.
+ - Removed scriptable object header in the pinned assets editor.
+
 ## 1.1.2
 
 ### Fixes
