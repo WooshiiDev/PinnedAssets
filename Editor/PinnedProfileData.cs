@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 namespace PinnedAssets
 {
     [Serializable]
-    public class PinnedProfileData
+    public class PinnedProfileData : IEquatable<PinnedProfileData>
     {
         // - Fields
 
@@ -102,6 +102,16 @@ namespace PinnedAssets
             assets.Insert(newIndex, asset);
 
             return true;
+        }
+
+        public bool Equals(PinnedProfileData other)
+        {
+            if (other == null) 
+            {
+                return false;
+            }
+
+            return other.name.Equals(name);
         }
     }
 }
