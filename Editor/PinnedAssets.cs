@@ -3,8 +3,6 @@ using UnityEngine;
 using UnityEditor;
 using Object = UnityEngine.Object;
 using System;
-using static Codice.CM.WorkspaceServer.WorkspaceTreeDataStore;
-using Unity.VisualScripting;
 
 namespace PinnedAssets
 {
@@ -82,6 +80,21 @@ namespace PinnedAssets
 
             profiles.Remove(profile);
         }
+
+        /// <summary>
+        /// Get the index of a profile.
+        /// </summary>
+        /// <param name="profile">The profile to find.</param>
+        /// <returns>Returns the index of a profile, otherwise will return -1.</returns>
+        public int GetIndex(PinnedProfileData profile)
+        {
+            if (profile == null)
+            {
+                return -1;
+            }
+
+            return profiles.IndexOf(profile);
+        }
     }
 
     [CustomEditor(typeof(PinnedAssetsData))]
@@ -104,8 +117,8 @@ namespace PinnedAssets
 
         private void OnEnable()
         {
+            SetupDisplay();
             list = new PinnedAssetsListView(Target.Display, serializedObject);
-            Target.Display.Profile = Target.GetProfile(0);
 
             PinnedAssetsListData.OnAssetsChanged += RefreshList;
         }
@@ -113,6 +126,21 @@ namespace PinnedAssets
         private void OnDisable()
         {
             PinnedAssetsListData.OnAssetsChanged -= RefreshList;
+        }
+
+        private void SetupDisplay()
+        {
+            PinnedProfileData currentProfile = Data.Profile;
+            if (currentProfile != null)
+            {
+                profileIndex = Target.GetIndex(currentProfile);
+            }
+
+            else
+            {
+                Data.Profile = Target.GetProfile(profileIndex);
+            }
+            Data.RefreshAssets();
         }
 
         private void RefreshList(IEnumerable<Object> assets)
