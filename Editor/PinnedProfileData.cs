@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
-using Codice.Client.Common;
-using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace PinnedAssets
 {
+    /// <summary>
+    /// Class representing a profile for PinnedAssets.
+    /// </summary>
     [Serializable]
     public class PinnedProfileData : IEquatable<PinnedProfileData>
     {
@@ -17,11 +18,22 @@ namespace PinnedAssets
 
         // - Properties
 
+        /// <summary>
+        /// This profile's name.
+        /// </summary>
         public string Name => name;
+
+        /// <summary>
+        /// The assets in this profile.
+        /// </summary>
         public Object[] Assets => assets.ToArray();
 
         // - Creation
 
+        /// <summary>
+        /// Create a new profile instance.
+        /// </summary>
+        /// <param name="name">The name of the profile.</param>
         public PinnedProfileData(string name)
         {
             this.name = name;
@@ -30,7 +42,7 @@ namespace PinnedAssets
         // - Methods
 
         /// <summary>
-        /// Add an asset to the container.
+        /// Add an asset to the profile.
         /// </summary>
         /// <param name="asset">The asset to add.</param>
         /// <exception cref="NullReferenceException">This exception will be thrown if the asset passed is null.</exception>
@@ -48,7 +60,7 @@ namespace PinnedAssets
         }
 
         /// <summary>
-        /// Remove an asset from the container.
+        /// Remove an asset from the profile.
         /// </summary>
         /// <param name="asset">The asset to remove.</param>
         /// <exception cref="NullReferenceException">This exception will be thrown if the asset passed is null.</exception>
@@ -64,11 +76,11 @@ namespace PinnedAssets
         }
 
         /// <summary>
-        /// 
+        /// Remove an asset from this profile.
         /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        /// <exception cref="IndexOutOfRangeException"></exception>
+        /// <param name="index">The index of the asset to remove.</param>
+        /// <returns>Retusn true if an asset was successfully removed otherwise will return false.</returns>
+        /// <exception cref="IndexOutOfRangeException">Thrown if the index passed is out of range of <see cref="Assets"/> length.</exception>
         public bool RemoveAsset(int index)
         {
             if (index < 0 || index >= assets.Count)
@@ -79,7 +91,14 @@ namespace PinnedAssets
             assets.RemoveAt(index);
             return true;
         }
-
+        
+        /// <summary>
+        /// Set the name of this profile.
+        /// </summary>
+        /// <remarks>
+        /// Names cannot be null. If a null or empty string is passed, it will return before assignment.
+        /// </remarks>
+        /// <param name="name">The name to give this profile.</param>
         public void SetName(string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -90,6 +109,12 @@ namespace PinnedAssets
             this.name = name;
         }
     
+        /// <summary>
+        /// Move an element from its current index to a new index.
+        /// </summary>
+        /// <param name="oldIndex">The current index.</param>
+        /// <param name="newIndex">The new index.</param>
+        /// <returns>Returns true if the asset was moved to a new index, otherwise this will return false.</returns>
         public bool Move(int oldIndex, int newIndex)
         {
             if (oldIndex == newIndex)
@@ -104,6 +129,11 @@ namespace PinnedAssets
             return true;
         }
 
+        /// <summary>
+        /// Check if an instance of a profile is equal to this one.
+        /// </summary>
+        /// <param name="other">The instance to check.</param>
+        /// <returns>Returns true if equal, otherwise will return false.</returns>
         public bool Equals(PinnedProfileData other)
         {
             if (other == null) 
