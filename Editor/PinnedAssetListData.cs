@@ -5,9 +5,16 @@ using Object = UnityEngine.Object;
 
 namespace PinnedAssets
 {
+    /// <summary>
+    /// The data class for the asset collections.
+    /// </summary>
     [Serializable]
     public class PinnedAssetListData
     {
+        /// <summary>
+        /// Delegate for when the asset list is modified.
+        /// </summary>
+        /// <param name="assets"></param>
         public delegate void ListMutatedDelegate(IEnumerable<Object> assets);
 
         /// <summary>
@@ -117,10 +124,10 @@ namespace PinnedAssets
         // - Collection updating
 
         /// <summary>
-        /// 
+        /// Add a range of assets to this list.
         /// </summary>
-        /// <param name="assets"></param>
-        /// <exception cref="NullReferenceException"></exception>
+        /// <param name="assets">The assets to add.</param>
+        /// <exception cref="NullReferenceException">Thrown if the collection passed is null.</exception>
         public void AddRange(IEnumerable<Object> assets)
         {
             if (assets == null)
@@ -137,9 +144,9 @@ namespace PinnedAssets
         }
 
         /// <summary>
-        /// 
+        /// Add an asset to this list.
         /// </summary>
-        /// <param name="asset"></param>
+        /// <param name="asset">The asset to add.</param>
         public void Add(Object asset)
         {
             profile.AddAsset(asset);
@@ -147,10 +154,10 @@ namespace PinnedAssets
         }
 
         /// <summary>
-        /// 
+        /// Remove a range of assets from this list.
         /// </summary>
-        /// <param name="assets"></param>
-        /// <exception cref="NullReferenceException"></exception>
+        /// <param name="assets">The assets to remove.</param>
+        /// <exception cref="NullReferenceException">Throws if the colleciton passed is null.</exception>
         public void RemoveRange(IEnumerable<Object> assets)
         {
             if (assets == null)
@@ -167,9 +174,12 @@ namespace PinnedAssets
         }
 
         /// <summary>
-        /// 
+        /// Remove an asset at the given index.
         /// </summary>
-        /// <param name="index"></param>
+        /// <remarks>
+        /// This removes the given asset from <see cref="Profile"/> first, and then will update the results for <seealso cref="DisplayedAssets"/>.
+        /// </remarks>
+        /// <param name="index">The index of the asset to remove.</param>
         public void Remove(int index)
         {
             profile.RemoveAsset(index);
@@ -177,9 +187,12 @@ namespace PinnedAssets
         }
 
         /// <summary>
-        /// 
+        /// Remove the given asset.
         /// </summary>
-        /// <param name="asset"></param>
+        /// <remarks>
+        /// This removes the given asset from <see cref="Profile"/> first, and then will update the results for <seealso cref="DisplayedAssets"/>.
+        /// </remarks>
+        /// <param name="asset">The asset to remove.</param>
         public void Remove(Object asset)
         {
             profile.RemoveAsset(asset);

@@ -5,6 +5,9 @@ using Object = UnityEngine.Object;
 
 namespace PinnedAssets.Editors
 {
+    /// <summary>
+    /// Class that handles the GUI view for <see cref="PinnedAssetListData"/>.
+    /// </summary>
     public sealed class PinnedAssetListView
     {
         private PinnedAssetListData data;
@@ -12,6 +15,11 @@ namespace PinnedAssets.Editors
         private SerializedObject serializedObject;
         private ReorderableList list;
 
+        /// <summary>
+        /// Create a new instance of a list view.
+        /// </summary>
+        /// <param name="data">The data the list uses.</param>
+        /// <param name="serializedObject">The serialized object this list requires.</param>
         public PinnedAssetListView(PinnedAssetListData data, SerializedObject serializedObject)
         {
             this.data = data;

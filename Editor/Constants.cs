@@ -3,6 +3,9 @@ using UnityEditor;
 
 namespace PinnedAssets
 {
+    /// <summary>
+    /// References to icons that are used in PinnedAssets.
+    /// </summary>
     public static class Icons
     {
         public static GUIContent Select = EditorGUIUtility.IconContent("d_scenepicking_pickable-mixed");
@@ -13,14 +16,34 @@ namespace PinnedAssets
         public static GUIContent RemoveAsset = EditorGUIUtility.IconContent("CrossIcon");
     }
 
+    /// <summary>
+    /// The styles used in PinnedAssets modified from Unity's own styles.
+    /// </summary>
     public static class Styles
     {
+        /// <summary>
+        /// Large bold label.
+        /// </summary>
         public static readonly GUIStyle Title;
 
+        /// <summary>
+        /// Base toolbar style.
+        /// </summary>
         public static readonly GUIStyle Toolbar;
+
+        /// <summary>
+        /// Default style used for buttons that aligns with <see cref="Toolbar"/>.
+        /// </summary>
         public static readonly GUIStyle ToolbarButton;
+
+        /// <summary>
+        /// Toolbar style for dropdowns, but displaying images only.
+        /// </summary>
         public static readonly GUIStyle ToolbarDropdownImage;
 
+        /// <summary>
+        /// Background box style.
+        /// </summary>
         public static readonly GUIStyle BoxContainer;
 
         static Styles()
