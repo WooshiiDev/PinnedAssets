@@ -1,19 +1,26 @@
-using System.Linq;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace PinnedAssets
+namespace PinnedAssets.Editors
 {
-    public sealed class PinnedAssetsListView
+    /// <summary>
+    /// Class that handles the GUI view for <see cref="PinnedAssetListData"/>.
+    /// </summary>
+    public sealed class PinnedAssetListView
     {
-        private PinnedAssetsListData data;
+        private PinnedAssetListData data;
 
         private SerializedObject serializedObject;
         private ReorderableList list;
 
-        public PinnedAssetsListView(PinnedAssetsListData data, SerializedObject serializedObject)
+        /// <summary>
+        /// Create a new instance of a list view.
+        /// </summary>
+        /// <param name="data">The data the list uses.</param>
+        /// <param name="serializedObject">The serialized object this list requires.</param>
+        public PinnedAssetListView(PinnedAssetListData data, SerializedObject serializedObject)
         {
             this.data = data;
             this.serializedObject = serializedObject;
