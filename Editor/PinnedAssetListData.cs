@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 namespace PinnedAssets
 {
     [Serializable]
-    public class PinnedAssetsListData
+    public class PinnedAssetListData
     {
         public delegate void ListMutatedDelegate(IEnumerable<Object> assets);
 

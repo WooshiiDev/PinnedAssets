@@ -20,18 +20,18 @@ namespace PinnedAssets
         };
 
         [SerializeField]
-        private PinnedAssetsListData display = new PinnedAssetsListData();
+        private PinnedAssetListData display = new PinnedAssetListData();
 
         // - Properties
 
         public PinnedProfileData[] Profiles => profiles.ToArray();
-        public PinnedAssetsListData Display
+        public PinnedAssetListData Display
         {
             get
             {
                 if (display == null)
                 {
-                    display = new PinnedAssetsListData();
+                    display = new PinnedAssetListData();
                 }
                 return display;
             }
@@ -106,26 +106,26 @@ namespace PinnedAssets
         private bool performDrag;
 
         private int profileIndex;
-        private PinnedAssetsListView list;
+        private PinnedAssetListView list;
 
         // - Properties
 
         private PinnedAssetsData Target => target as PinnedAssetsData;
-        private PinnedAssetsListData Data => Target.Display;
+        private PinnedAssetListData Data => Target.Display;
 
         // - Methods
 
         private void OnEnable()
         {
             SetupDisplay();
-            list = new PinnedAssetsListView(Target.Display, serializedObject);
+            list = new PinnedAssetListView(Target.Display, serializedObject);
 
-            PinnedAssetsListData.OnAssetsChanged += RefreshList;
+            PinnedAssetListData.OnAssetsChanged += RefreshList;
         }
 
         private void OnDisable()
         {
-            PinnedAssetsListData.OnAssetsChanged -= RefreshList;
+            PinnedAssetListData.OnAssetsChanged -= RefreshList;
         }
 
         protected override void OnHeaderGUI()
