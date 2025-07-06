@@ -95,4 +95,37 @@ namespace PinnedAssets.Editors
 
     }
 
+    /// <summary>
+    /// Base class for adding extra GUI elements to assets.
+    /// </summary>
+    /// <typeparam name="T">The type to target.</typeparam>
+    public abstract class PinnedAssetDrawer<T> : PinnedAssetDrawer where T : Object
+    {
+        /// <summary>
+        /// Main GUI method for drawing elements.
+        /// </summary>
+        /// <param name="rect">The GUI rect this asset uses.</param>
+        /// <param name="asset"></param>
+        public override void OnGUI(Rect rect, Object asset, PinnedAssetListData list, SerializedObject serializedObject)
+        {
+            T obj = (T)asset;
+
+            rect.height = GetHeight(rect, obj);
+            OnAssetGUI(rect, obj, list, serializedObject);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <param name="asset"></param>
+        protected abstract void OnAssetGUI(Rect rect, T asset, PinnedAssetListData list, SerializedObject serializedObject);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="asset"></param>
+        /// <returns></returns>
+        protected virtual float GetHeight(Rect rect, T asset) => rect.height;
+    }
 }
