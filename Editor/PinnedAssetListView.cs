@@ -15,6 +15,8 @@ namespace PinnedAssets.Editors
         private SerializedObject serializedObject;
         private ReorderableList list;
 
+        private PinnedAssetDrawer drawer;
+
         /// <summary>
         /// Create a new instance of a list view.
         /// </summary>
@@ -24,6 +26,8 @@ namespace PinnedAssets.Editors
         {
             this.data = data;
             this.serializedObject = serializedObject;
+
+            drawer = new PinnedAssetDrawer();
 
             list = new ReorderableList(serializedObject, GetProfileAssets())
             {
@@ -67,16 +71,7 @@ namespace PinnedAssets.Editors
                 return;
             }
 
-            EditorGUIUtility.SetIconSize(16f * Vector2.one);
-
-            Rect labelRect = GetAssetLabelRect(rect);
-            GUI.Label(labelRect, GetAssetContent(labelRect, asset));
-
-            if (GUI.Button(GetSmallButtonRect(rect), Icons.Trash, Styles.ToolbarButton))
-            {
-                data.Remove(asset);
-                serializedObject.Update();
-            }
+            drawer.OnGUI(rect, asset, data, serializedObject);
         }
 
         private void OnElementSelect(ReorderableList list)
