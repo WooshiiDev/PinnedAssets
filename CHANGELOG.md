@@ -1,3 +1,10 @@
+## 1.3.0
+
+### Changes
+
+ - Renamed classes to define their context better.
+ - Separated classes into their own files where required.
+ - Added missing documentation comments on public members and classes.
 
 ## 1.2.0
 
