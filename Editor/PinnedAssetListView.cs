@@ -1,10 +1,9 @@
-using System.Linq;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace PinnedAssets
+namespace PinnedAssets.Editors
 {
     public sealed class PinnedAssetListView
     {

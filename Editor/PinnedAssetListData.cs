@@ -1,9 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO.IsolatedStorage;
-using NUnit.Framework.Constraints;
-using PlasticPipe.PlasticProtocol.Messages;
-using UnityEditor.VersionControl;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
