@@ -6,8 +6,11 @@ namespace PinnedAssets.Editors
 {
     public class PinnedAssetDrawer
     {
+        protected float buttonCount;
+
         public virtual void OnGUI(Rect rect, Object asset, PinnedAssetListData list, SerializedObject serializedObject)
         {
+            buttonCount = 0;
             DrawDefaultGUI(rect, asset, list, serializedObject);
         }
 
@@ -18,11 +21,22 @@ namespace PinnedAssets.Editors
             Rect labelRect = GetAssetLabelRect(rect);
             GUI.Label(labelRect, GetAssetContent(labelRect, asset));
 
-            if (GUI.Button(GetSmallButtonRect(rect), Icons.Trash, Styles.ToolbarButton))
+            if (Button(rect, Icons.Trash, Styles.ToolbarButton))
             {
                 list.Remove(asset);
                 serializedObject.Update();
             }
+        }
+
+        protected bool Button(Rect rect, GUIContent content)
+        {
+            return Button(rect, content, Styles.ToolbarButton);
+        }
+
+        protected bool Button(Rect rect, GUIContent content, GUIStyle style)
+        {
+            buttonCount++;
+            return GUI.Button(GetSmallButtonRect(rect), content, style);
         }
 
         protected Rect GetAssetLabelRect(Rect elementRect)
@@ -32,7 +46,10 @@ namespace PinnedAssets.Editors
 
         protected Rect GetSmallButtonRect(Rect elementRect)
         {
-            elementRect.x += elementRect.width - 32f + 6f;
+            float offset = 32f + 2f;
+            offset *= buttonCount;
+
+            elementRect.x += elementRect.width - offset;
             elementRect.width = 32f;
             return elementRect;
         }
@@ -106,8 +123,10 @@ namespace PinnedAssets.Editors
         /// </summary>
         /// <param name="rect">The GUI rect this asset uses.</param>
         /// <param name="asset"></param>
-        public override void OnGUI(Rect rect, Object asset, PinnedAssetListData list, SerializedObject serializedObject)
+        public sealed override void OnGUI(Rect rect, Object asset, PinnedAssetListData list, SerializedObject serializedObject)
         {
+            buttonCount = 0;
+
             T obj = (T)asset;
 
             rect.height = GetHeight(rect, obj);
