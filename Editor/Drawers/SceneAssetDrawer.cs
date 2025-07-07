@@ -15,7 +15,7 @@ namespace PinnedAssets.Editors.Drawers
                 return;
             }
 
-            if (Button(rect, Icons.LoadScene, Styles.ToolbarButton))
+            if (Button(rect, Icons.LoadScene, Styles.ToolbarButton, 64f))
             {
                 LoadScene(asset);
             }

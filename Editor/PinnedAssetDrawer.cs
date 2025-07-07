@@ -6,11 +6,13 @@ namespace PinnedAssets.Editors
 {
     public class PinnedAssetDrawer
     {
-        protected float buttonCount;
+        private const float DEFAULT_BUTTON_SIZE = 32f;
+
+        protected float buttonPos;
 
         public virtual void OnGUI(Rect rect, Object asset, PinnedAssetListData list, SerializedObject serializedObject)
         {
-            buttonCount = 0;
+            buttonPos = rect.x + rect.width;
             DrawDefaultGUI(rect, asset, list, serializedObject);
         }
 
@@ -28,15 +30,14 @@ namespace PinnedAssets.Editors
             }
         }
 
-        protected bool Button(Rect rect, GUIContent content)
+        protected bool Button(Rect rect, GUIContent content, float width = DEFAULT_BUTTON_SIZE)
         {
             return Button(rect, content, Styles.ToolbarButton);
         }
 
-        protected bool Button(Rect rect, GUIContent content, GUIStyle style)
+        protected bool Button(Rect rect, GUIContent content, GUIStyle style, float width = DEFAULT_BUTTON_SIZE)
         {
-            buttonCount++;
-            return GUI.Button(GetSmallButtonRect(rect), content, style);
+            return GUI.Button(GetSmallButtonRect(rect, width), content, style);
         }
 
         protected Rect GetAssetLabelRect(Rect elementRect)
@@ -44,13 +45,13 @@ namespace PinnedAssets.Editors
             return elementRect;
         }
 
-        protected Rect GetSmallButtonRect(Rect elementRect)
+        protected Rect GetSmallButtonRect(Rect elementRect, float width)
         {
-            float offset = 32f + 2f;
-            offset *= buttonCount;
+            elementRect.x = buttonPos - width;
+            elementRect.width = width;
 
-            elementRect.x += elementRect.width - offset;
-            elementRect.width = 32f;
+            buttonPos -= width;
+
             return elementRect;
         }
 
@@ -125,7 +126,7 @@ namespace PinnedAssets.Editors
         /// <param name="asset"></param>
         public sealed override void OnGUI(Rect rect, Object asset, PinnedAssetListData list, SerializedObject serializedObject)
         {
-            buttonCount = 0;
+            buttonPos = rect.x + rect.width;
 
             T obj = (T)asset;
 
