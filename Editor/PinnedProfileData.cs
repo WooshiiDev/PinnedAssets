@@ -46,16 +46,26 @@ namespace PinnedAssets
         /// </summary>
         /// <param name="asset">The asset to add.</param>
         /// <exception cref="NullReferenceException">This exception will be thrown if the asset passed is null.</exception>
-        public void AddAsset(Object asset)
+        public void AddAsset(Object asset, int index = -1)
         {
             if (asset == null)
             {
                 throw new NullReferenceException();
             }
 
-            if (!assets.Contains(asset))
+            if (assets.Contains(asset))
+            {
+                return;
+            }
+
+            if (index == -1)
             {
                 assets.Add(asset);
+            }
+            else
+            {
+                index = Mathf.Clamp(index, 0, assets.Count);
+                assets.Insert(index, asset);
             }
         }
 

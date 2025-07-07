@@ -128,7 +128,7 @@ namespace PinnedAssets
         /// </summary>
         /// <param name="assets">The assets to add.</param>
         /// <exception cref="NullReferenceException">Thrown if the collection passed is null.</exception>
-        public void AddRange(IEnumerable<Object> assets)
+        public void AddRange(IEnumerable<Object> assets, int startIndex = -1)
         {
             if (assets == null)
             {
@@ -137,7 +137,12 @@ namespace PinnedAssets
 
             foreach (Object asset in assets)
             {
-                profile.AddAsset(asset);
+                profile.AddAsset(asset, startIndex);
+
+                if (startIndex > -1)
+                {
+                    startIndex++;
+                }
             }
 
             RefreshAssets();
@@ -147,9 +152,9 @@ namespace PinnedAssets
         /// Add an asset to this list.
         /// </summary>
         /// <param name="asset">The asset to add.</param>
-        public void Add(Object asset)
+        public void Add(Object asset, int index = -1)
         {
-            profile.AddAsset(asset);
+            profile.AddAsset(asset, index);
             RefreshAssets();
         }
 
