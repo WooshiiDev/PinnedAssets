@@ -71,6 +71,8 @@ namespace PinnedAssets.Editors
                 return GUIContent.none;
             }
 
+            EditorGUIUtility.SetIconSize(16f * Vector2.one);
+
             // Get current length of content 
 
             int textLength = content.text.Length;
