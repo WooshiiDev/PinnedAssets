@@ -1,6 +1,7 @@
-using Unity.VisualScripting;
+using System;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace PinnedAssets.Editors
 {
@@ -55,7 +56,7 @@ namespace PinnedAssets.Editors
             return elementRect;
         }
 
-        private GUIContent GetAssetContent(Rect rect, Object asset)
+        protected GUIContent GetAssetContent(Rect rect, Object asset)
         {
             GUIContent content = EditorGUIUtility.ObjectContent(asset, asset.GetType());
             content.text = asset.name;
