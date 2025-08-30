@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -67,8 +68,7 @@ namespace PinnedAssets.Editors
                 return;
             }
 
-            PinnedAssetsDrawerCache
-                .Get(asset)
+            PinnedAssetsDrawerCache.Get(asset)
                 .OnGUI(rect, asset, data, serializedObject);
         }
 
