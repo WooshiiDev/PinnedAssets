@@ -58,7 +58,7 @@ namespace PinnedAssets.Editors
                 return;
             }
 
-            Object asset = data.DisplayedAssets[index];
+            PinnedAssetData asset = data.DisplayedAssets[index];
 
             if (asset == null)
             {
@@ -70,11 +70,11 @@ namespace PinnedAssets.Editors
             EditorGUIUtility.SetIconSize(16f * Vector2.one);
 
             Rect labelRect = GetAssetLabelRect(rect);
-            GUI.Label(labelRect, GetAssetContent(labelRect, asset));
+            GUI.Label(labelRect, GetAssetContent(labelRect, asset.Asset));
 
             if (GUI.Button(GetSmallButtonRect(rect), Icons.Trash, Styles.ToolbarButton))
             {
-                data.Remove(asset);
+                data.Remove(asset.Asset);
                 serializedObject.Update();
             }
         }
@@ -86,7 +86,7 @@ namespace PinnedAssets.Editors
             Object[] selectedObjects = new Object[indices.Count];
             for (int i = 0; i < indices.Count; i++)
             {
-                selectedObjects[i] = data.Profile.Assets[indices[i]];
+                selectedObjects[i] = data.Profile.Assets[indices[i]].Asset;
             }
 
             Selection.objects = selectedObjects;

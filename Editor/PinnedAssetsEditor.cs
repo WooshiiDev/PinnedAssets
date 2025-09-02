@@ -56,7 +56,7 @@ namespace PinnedAssets.Editors
             Data.RefreshAssets();
         }
 
-        private void RefreshList(IEnumerable<Object> assets)
+        private void RefreshList(IEnumerable<PinnedAssetData> assets)
         {
             EditorUtility.SetDirty(Target);
             serializedObject.Update();
