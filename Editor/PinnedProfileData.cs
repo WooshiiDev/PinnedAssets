@@ -17,7 +17,7 @@ namespace PinnedAssets
         // - Fields
 
         [SerializeField] private string name;
-        [SerializeField] private List<PinnedAssetData> assets = new List<PinnedAssetData>();
+        [SerializeReference] private List<PinnedAssetData> assets = new List<PinnedAssetData>();
 
         // - Properties
 
