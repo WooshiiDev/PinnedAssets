@@ -60,7 +60,7 @@ namespace PinnedAssets.Editors
 
             PinnedAssetData asset = data.DisplayedAssets[index];
 
-            if (asset == null)
+            if (!asset.IsValid())
             {
                 data.RefreshAssets();
                 Selection.objects = null;
