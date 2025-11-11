@@ -59,16 +59,18 @@ namespace PinnedAssets.Editors
                 return;
             }
 
-            Object asset = data.DisplayedAssets[index];
+            PinnedAssetData assetData = data.DisplayedAssets[index];
 
-            if (asset == null)
+            if (!assetData.IsValid())
             {
                 data.RefreshAssets();
                 Selection.objects = null;
                 return;
             }
 
-            PinnedAssetsDrawerCache.Get(asset)
+            Object asset = assetData.Asset;
+            PinnedAssetsDrawerCache
+                .Get(asset)
                 .OnGUI(rect, asset, data, serializedObject);
         }
 
@@ -79,7 +81,7 @@ namespace PinnedAssets.Editors
             Object[] selectedObjects = new Object[indices.Count];
             for (int i = 0; i < indices.Count; i++)
             {
-                selectedObjects[i] = data.Profile.Assets[indices[i]];
+                selectedObjects[i] = data.Profile.Assets[indices[i]].Asset;
             }
 
             Selection.objects = selectedObjects;

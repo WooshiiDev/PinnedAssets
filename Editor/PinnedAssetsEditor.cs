@@ -6,7 +6,6 @@ using UnityEngine;
 using UnityEditor;
 using Object = UnityEngine.Object;
 
-
 namespace PinnedAssets.Editors
 {
     public static class PinnedAssetsDrawerCache
@@ -36,7 +35,6 @@ namespace PinnedAssets.Editors
 
                 drawers.Add(t.BaseType.GenericTypeArguments[0], (PinnedAssetDrawer)Activator.CreateInstance(t));
             }
-
         }
 
         public static PinnedAssetDrawer Get(Object asset)
@@ -46,11 +44,10 @@ namespace PinnedAssets.Editors
                 return drawers[typeof(Object)];
             }
 
-
             return drawers[asset.GetType()];
         }
     }
-
+        
     [CustomEditor(typeof(PinnedAssetsData))]
     public class PinnedAssetsEditor : Editor
     {
@@ -73,21 +70,19 @@ namespace PinnedAssets.Editors
         {
             PinnedAssetsDrawerCache.Collect();
 
-            SetupDisplay();
-            list = new PinnedAssetListView(Target.Display, serializedObject);
-
             PinnedAssetListData.OnAssetsChanged += RefreshList;
+            PinnedAssetsManager.OnAfterProcess += Refresh;
+
+            SetupDisplay();
         }
 
         private void OnDisable()
         {
             PinnedAssetListData.OnAssetsChanged -= RefreshList;
+            PinnedAssetsManager.OnAfterProcess -= Refresh;
         }
 
-        protected override void OnHeaderGUI()
-        {
-            
-        }
+        protected override void OnHeaderGUI() { }
 
         private void SetupDisplay()
         {
@@ -101,13 +96,26 @@ namespace PinnedAssets.Editors
             {
                 Data.Profile = Target.GetProfile(profileIndex);
             }
-            Data.RefreshAssets();
+            Refresh();
+            list = new PinnedAssetListView(Data, serializedObject);
         }
 
-        private void RefreshList(IEnumerable<Object> assets)
+        private void RefreshList(IEnumerable<PinnedAssetData> assets)
         {
-            EditorUtility.SetDirty(Target);
+            Save();
+        }
+
+        private void Refresh()
+        {
+            Data.RefreshAssets();
+            Save();
+        }
+
+        private void Save()
+        {
             serializedObject.Update();
+            serializedObject.ApplyModifiedProperties();
+            EditorUtility.SetDirty(target);
         }
 
         public override void OnInspectorGUI()

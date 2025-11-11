@@ -24,7 +24,7 @@ namespace PinnedAssets.Editors
             Rect labelRect = GetAssetLabelRect(rect);
             GUI.Label(labelRect, GetAssetContent(labelRect, asset));
 
-            if (Button(rect, Icons.Trash, Styles.ToolbarButton))
+            if (Button(GetTrashButtonRect(rect), Icons.Trash, Styles.ToolbarButton))
             {
                 list.Remove(asset);
                 serializedObject.Update();
@@ -44,6 +44,11 @@ namespace PinnedAssets.Editors
         protected Rect GetAssetLabelRect(Rect elementRect)
         {
             return elementRect;
+        }
+
+        protected Rect GetTrashButtonRect(Rect elementRect)
+        {
+            return GetSmallButtonRect(elementRect, 0);
         }
 
         protected Rect GetSmallButtonRect(Rect elementRect, float width)

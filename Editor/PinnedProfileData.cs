@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -14,7 +17,7 @@ namespace PinnedAssets
         // - Fields
 
         [SerializeField] private string name;
-        [SerializeField] private List<Object> assets = new List<Object>();
+        [SerializeField] private List<PinnedAssetData> assets = new List<PinnedAssetData>();
 
         // - Properties
 
@@ -26,7 +29,7 @@ namespace PinnedAssets
         /// <summary>
         /// The assets in this profile.
         /// </summary>
-        public Object[] Assets => assets.ToArray();
+        public PinnedAssetData[] Assets => assets.ToArray();
 
         // - Creation
 
@@ -53,19 +56,9 @@ namespace PinnedAssets
                 throw new NullReferenceException();
             }
 
-            if (assets.Contains(asset))
+            if (!Contains(asset))
             {
-                return;
-            }
-
-            if (index == -1)
-            {
-                assets.Add(asset);
-            }
-            else
-            {
-                index = Mathf.Clamp(index, 0, assets.Count);
-                assets.Insert(index, asset);
+                assets.Add(new PinnedAssetData(asset));
             }
         }
 
@@ -82,7 +75,13 @@ namespace PinnedAssets
                 throw new NullReferenceException();
             }
 
-            return assets.Remove(asset);
+            int index = IndexOf(asset);
+            if (index == -1)
+            {
+                return false;
+            }
+
+            return RemoveAsset(index);
         }
 
         /// <summary>
@@ -132,7 +131,7 @@ namespace PinnedAssets
                 return false;
             }
 
-            Object asset = assets[oldIndex];
+            PinnedAssetData asset = assets[oldIndex];
             assets.RemoveAt(oldIndex);
             assets.Insert(newIndex, asset);
 
@@ -152,6 +151,125 @@ namespace PinnedAssets
             }
 
             return other.name.Equals(name);
+        }
+        
+        /// <summary>
+        /// Check if this profile contains an asset.
+        /// </summary>
+        /// <param name="asset"></param>
+        /// <returns>Returns true if the asset exists, otherwise returns false. If the asset passed is null, this will also return false.</returns>
+        public bool Contains(Object asset)
+        {
+            return IndexOf(asset) != -1;
+        }
+    
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="asset"></param>
+        /// <returns></returns>
+        public int IndexOf(Object asset)
+        {
+            if (asset == null)
+            {
+                return -1;
+            }
+
+            for (int i = 0; i < assets.Count; i++)
+            {
+                if (assets[i].Equals(asset))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+    }
+
+    /// <summary>
+    /// Representation of an asset.
+    /// </summary>
+    [Serializable]
+    public class PinnedAssetData : IEquatable<Object>
+    {
+        [SerializeField] private string path;
+        [SerializeField] private Object asset;
+
+        /// <summary>
+        /// The asset this data represents.
+        /// </summary>
+        public Object Asset => asset;
+
+        /// <summary>
+        /// The project path for this asset.
+        /// </summary>
+        public string Path => path;
+
+        /// <summary>
+        /// Create a new pinned asset instance, giving the asset it represents.
+        /// </summary>
+        /// <param name="asset">The asset this represents.</param>
+        public PinnedAssetData(Object asset)
+        {
+            this.asset = asset;
+            UpdateCache();
+        }
+
+        public void UpdateCache()
+        {
+            path = GetAssetPath();
+        }
+
+        private string GetAssetPath()
+        {
+            return AssetDatabase.GetAssetPath(asset);
+        }
+
+        public bool IsValid()
+        {
+            return asset != null;
+        }
+
+        // Comparisons
+
+        public bool Equals(Object other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            return asset.GetInstanceID().Equals(other.GetInstanceID());
+        }
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+
+            return Equals(obj as Object);
+        }
+
+        public override int GetHashCode()
+        {
+            return asset.GetHashCode();
+        }
+
+        public static bool operator ==(PinnedAssetData a, PinnedAssetData b)
+        {
+            if (a is null || b is null)
+            {
+                return false;
+            }
+
+            return a.Equals(b);
+        }
+
+        public static bool operator !=(PinnedAssetData a, PinnedAssetData b)
+        {
+            return !(a == b);
         }
     }
 }
