@@ -15,13 +15,13 @@ namespace PinnedAssets
 
         // - Fields
 
-        [SerializeField]
+        [SerializeReference]
         private List<PinnedProfileData> profiles = new List<PinnedProfileData>()
         {
             new PinnedProfileData("Default")
         };
 
-        [SerializeField]
+        [SerializeReference]
         private PinnedAssetListData display = new PinnedAssetListData();
 
         // - Properties
