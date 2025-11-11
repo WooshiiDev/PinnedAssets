@@ -169,7 +169,7 @@ namespace PinnedAssets
         /// </summary>
         /// <param name="asset"></param>
         /// <returns></returns>
-        private int IndexOf(Object asset)
+        public int IndexOf(Object asset)
         {
             if (asset == null)
             {
@@ -178,7 +178,7 @@ namespace PinnedAssets
 
             for (int i = 0; i < assets.Count; i++)
             {
-                if (assets[i].Asset.Equals(asset))
+                if (assets[i].Equals(asset))
                 {
                     return i;
                 }
@@ -227,6 +227,13 @@ namespace PinnedAssets
             return AssetDatabase.GetAssetPath(asset);
         }
 
+        public bool IsValid()
+        {
+            return asset != null;
+        }
+
+        // Comparisons
+
         public bool Equals(Object other)
         {
             if (other == null)
@@ -235,6 +242,35 @@ namespace PinnedAssets
             }
 
             return asset.GetInstanceID().Equals(other.GetInstanceID());
+        }
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+
+            return Equals(obj as Object);
+        }
+
+        public override int GetHashCode()
+        {
+            return asset.GetHashCode();
+        }
+
+        public static bool operator ==(PinnedAssetData a, PinnedAssetData b)
+        {
+            if (a is null || b is null)
+            {
+                return false;
+            }
+
+            return a.Equals(b);
+        }
+
+        public static bool operator !=(PinnedAssetData a, PinnedAssetData b)
+        {
+            return !(a == b);
         }
     }
 }
