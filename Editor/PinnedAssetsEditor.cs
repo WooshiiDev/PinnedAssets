@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using Object = UnityEngine.Object;
 
 namespace PinnedAssets.Editors
 {
@@ -25,21 +24,19 @@ namespace PinnedAssets.Editors
 
         private void OnEnable()
         {
-            SetupDisplay();
-            list = new PinnedAssetListView(Target.Display, serializedObject);
-
             PinnedAssetListData.OnAssetsChanged += RefreshList;
+            PinnedAssetsManager.OnAfterProcess += Refresh;
+
+            SetupDisplay();
         }
 
         private void OnDisable()
         {
             PinnedAssetListData.OnAssetsChanged -= RefreshList;
+            PinnedAssetsManager.OnAfterProcess -= Refresh;
         }
 
-        protected override void OnHeaderGUI()
-        {
-            
-        }
+        protected override void OnHeaderGUI() { }
 
         private void SetupDisplay()
         {
@@ -53,12 +50,24 @@ namespace PinnedAssets.Editors
             {
                 Data.Profile = Target.GetProfile(profileIndex);
             }
-            Data.RefreshAssets();
+            Refresh();
+            list = new PinnedAssetListView(Data, serializedObject);
         }
 
         private void RefreshList(IEnumerable<PinnedAssetData> assets)
         {
-            EditorUtility.SetDirty(Target);
+            Save();
+        }
+
+        private void Refresh()
+        {
+            Data.RefreshAssets();
+            Save();
+        }
+
+        private void Save()
+        {
+            EditorUtility.IsDirty(Target);
             serializedObject.Update();
         }
 
