@@ -101,6 +101,10 @@ namespace PinnedAssets
                 {
                     profile.RemoveAsset(i);
                 }
+                else
+                {
+                    profile.Assets[i].UpdateCache();
+                }
             }
 
             // Collect view 
