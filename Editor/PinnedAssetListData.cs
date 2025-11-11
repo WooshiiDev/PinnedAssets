@@ -27,7 +27,7 @@ namespace PinnedAssets
         /// </summary>
         public static event ListMutatedDelegate OnAssetsChanged;
 
-        [SerializeField] private PinnedProfileData profile;
+        [SerializeReference] private PinnedProfileData profile;
         [SerializeField] private List<PinnedAssetData> assets = new List<PinnedAssetData>();
         [SerializeField] private string filter;
 

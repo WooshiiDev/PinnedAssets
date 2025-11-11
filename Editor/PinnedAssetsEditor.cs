@@ -67,8 +67,9 @@ namespace PinnedAssets.Editors
 
         private void Save()
         {
-            EditorUtility.IsDirty(Target);
             serializedObject.Update();
+            serializedObject.ApplyModifiedProperties();
+            EditorUtility.SetDirty(target);
         }
 
         public override void OnInspectorGUI()
