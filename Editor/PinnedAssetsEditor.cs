@@ -1,9 +1,53 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using UnityEditor;
+using Object = UnityEngine.Object;
 
 namespace PinnedAssets.Editors
 {
+    public static class PinnedAssetsDrawerCache
+    {
+        private static Dictionary<Type, PinnedAssetDrawer> drawers = new Dictionary<Type, PinnedAssetDrawer>();
+
+        public static void Collect()
+        {
+            IEnumerable<Type> types = Assembly
+                .GetExecutingAssembly()
+                .GetExportedTypes()
+                .Where(t => t.IsSubclassOf(typeof(PinnedAssetDrawer)));
+
+            drawers.Clear();
+            drawers.Add(typeof(Object), new PinnedAssetDrawer());
+            foreach (Type t in types)
+            {
+                if (t.IsAbstract)
+                {
+                    continue;
+                }
+
+                if (t == typeof(PinnedAssetDrawer))
+                {
+                    continue;
+                }
+
+                drawers.Add(t.BaseType.GenericTypeArguments[0], (PinnedAssetDrawer)Activator.CreateInstance(t));
+            }
+        }
+
+        public static PinnedAssetDrawer Get(Object asset)
+        {
+            if (asset == null || !drawers.ContainsKey(asset.GetType()))
+            {
+                return drawers[typeof(Object)];
+            }
+
+            return drawers[asset.GetType()];
+        }
+    }
+        
     [CustomEditor(typeof(PinnedAssetsData))]
     public class PinnedAssetsEditor : Editor
     {
@@ -24,6 +68,8 @@ namespace PinnedAssets.Editors
 
         private void OnEnable()
         {
+            PinnedAssetsDrawerCache.Collect();
+
             PinnedAssetListData.OnAssetsChanged += RefreshList;
             PinnedAssetsManager.OnAfterProcess += Refresh;
 
@@ -152,6 +198,7 @@ namespace PinnedAssets.Editors
         {
             list.Draw();
         }
+
 
         private void HandleEvents(Rect rect, Event evt)
         {
