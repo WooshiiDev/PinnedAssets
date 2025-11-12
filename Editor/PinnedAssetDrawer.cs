@@ -13,12 +13,12 @@ namespace PinnedAssets.Editors
 
         public virtual void OnGUI(Rect rect, Object asset, PinnedAssetListData list, SerializedObject serializedObject)
         {
-            buttonPos = rect.x + rect.width;
             DrawDefaultGUI(rect, asset, list, serializedObject);
         }
 
         protected void DrawDefaultGUI(Rect rect, Object asset, PinnedAssetListData list, SerializedObject serializedObject)
         {
+            buttonPos = rect.x + rect.width;
             EditorGUIUtility.SetIconSize(16f * Vector2.one);
 
             Rect labelRect = GetAssetLabelRect(rect);
@@ -134,12 +134,28 @@ namespace PinnedAssets.Editors
         /// <param name="asset"></param>
         public sealed override void OnGUI(Rect rect, Object asset, PinnedAssetListData list, SerializedObject serializedObject)
         {
+            T targetAsset = (T)asset;
+            if (!IsValid(targetAsset))
+            {
+                DrawDefaultGUI(rect, asset, list, serializedObject);
+                return;
+            }
+
             buttonPos = rect.x + rect.width;
 
-            T obj = (T)asset;
 
-            rect.height = GetHeight(rect, obj);
-            OnAssetGUI(rect, obj, list, serializedObject);
+            rect.height = GetHeight(rect, targetAsset);
+            OnAssetGUI(rect, targetAsset, list, serializedObject);
+        }
+
+        /// <summary>
+        /// Determine whether the target instance requires this drawer. Use this to specify requirements for assets.
+        /// </summary>
+        /// <param name="instance">The instance.</param>
+        /// <returns>Returns true if the instance is valid, otherwise returns false.</returns>        
+        public virtual bool IsValid(T instance)
+        {
+            return true;
         }
 
         /// <summary>
