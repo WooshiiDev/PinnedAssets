@@ -56,9 +56,19 @@ namespace PinnedAssets
                 throw new NullReferenceException();
             }
 
-            if (!Contains(asset))
+            if (Contains(asset))
             {
-                assets.Add(new PinnedAssetData(asset));
+                return;
+            }
+
+            PinnedAssetData data = new PinnedAssetData(asset);
+            if (index == -1)
+            {
+                assets.Add(data);
+            }
+            else
+            {
+                assets.Insert(index, data);
             }
         }
 
