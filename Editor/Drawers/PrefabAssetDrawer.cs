@@ -19,19 +19,19 @@ namespace PinnedAssets.Editors.Drawers
 
             if (Button(rect, OpenContent, Styles.ToolbarButton, 64f))
             {
-                LoadScene(asset);
+                OpenPrefab(asset);
             }
+        }
+
+        private void OpenPrefab(GameObject asset)
+        {
+            AssetDatabase.OpenAsset(asset);
         }
 
         public override bool IsValid(GameObject instance)
         {
             return PrefabUtility.GetPrefabAssetType(instance) != PrefabAssetType.NotAPrefab
                 && instance.transform.root == instance.transform;
-        }
-
-        private void LoadScene(GameObject asset)
-        {
-            AssetDatabase.OpenAsset(asset);
         }
     }
 }
