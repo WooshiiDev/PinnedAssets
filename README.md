@@ -19,6 +19,44 @@
 Pinned Assets was made as Unity does not have an easy way to pin frequently accessed assets.
 This allows you to not only pin assets, but also make multiple profiles to easily group what you need together.
 
+### API 
+
+Custom GUI drawers can be created for asset types, to extend pinned functionality:
+
+<p align="center">
+ <img width="620" height="76" alt="image" src="https://github.com/user-attachments/assets/73caed9d-62c8-4314-a9ab-4dd354fd4000" />
+</p>
+
+```C#
+public class TextAssetDrawer : PinnedAssetDrawer<TextAsset>
+{
+    protected override void OnAssetGUI(Rect rect, TextAsset asset, PinnedAssetListData list, SerializedObject serializedObject)
+    {
+        DrawDefaultGUI(rect, asset, list, serializedObject);
+
+        if (Application.isPlaying)
+        {
+            return;
+        }
+
+        if (Button(rect, Icons.Edit, Styles.ToolbarButton, 64f))
+        {
+            OpenScript(asset);
+        }
+    }
+
+    private void OpenScript(TextAsset asset)
+    {
+        AssetDatabase.OpenAsset(asset.GetInstanceID());
+    }
+
+    public override bool IsValid(TextAsset instance)
+    {
+        return base.IsValid(instance);
+    }
+}
+ ```
+
 ## Installation
 <p align="center">
   <a href="https://github.com/WooshiiDev/PinnedAssets/releases">Releases</a> •
@@ -37,7 +75,7 @@ You can also install this via git by adding the following to your **manifest.jso
 
 
 ## Support
-Please submit any queries, bugs or issues, to the [Issues](https://github.com/WooshiiDev/PinnedAssets/issues) page on this repository. All feedback is appreciated as it not just helps myself find problems I didn't otherwise see, but also helps improves Pinned Assets as a whole.
+Please submit any queries, bugs or issues, to the [Issues](https://github.com/WooshiiDev/PinnedAssets/issues) page on this repository. All feedback is appreciated as it helps improves Pinned Assets.
 
 Reach out to me or see my other work through:
 
