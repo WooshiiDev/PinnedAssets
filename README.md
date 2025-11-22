@@ -19,14 +19,13 @@
 Pinned Assets was made as Unity does not have an easy way to pin frequently accessed assets.
 This allows you to not only pin assets, but also make multiple profiles to easily group what you need together.
 
-### API 
-
 Custom GUI drawers can be created for asset types, to extend pinned functionality:
 
 <p align="center">
  <img width="620" height="76" alt="image" src="https://github.com/user-attachments/assets/73caed9d-62c8-4314-a9ab-4dd354fd4000" />
 </p>
-
+ 
+[TextAssetDrawer.cs](https://github.com/WooshiiDev/PinnedAssets/blob/main/Editor/Drawers/TextAssetDrawer.cs)
 ```C#
 public class TextAssetDrawer : PinnedAssetDrawer<TextAsset>
 {
