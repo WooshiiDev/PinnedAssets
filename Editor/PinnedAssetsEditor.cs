@@ -149,6 +149,7 @@ namespace PinnedAssets.Editors
                 if (GUILayout.Button(Icons.Create, EditorStyles.toolbarButton, GUILayout.Width(32f)))
                 {
                     Data.Profile = Target.CreateProfile();
+                    profileIndex = Target.GetIndex(Data.Profile);
                 }
 
                 EditorGUI.BeginChangeCheck();
@@ -198,7 +199,6 @@ namespace PinnedAssets.Editors
         {
             list.Draw();
         }
-
 
         private void HandleEvents(Rect rect, Event evt)
         {
