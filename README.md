@@ -10,7 +10,9 @@
   <a href="#donate">Donate</a>
 </p>
 
-https://github.com/user-attachments/assets/fed22fa3-fee6-4409-8c66-fc949cd18ec8
+<p align="center">
+ <img width="641" height="267" alt="image" src="https://github.com/user-attachments/assets/821fa19b-6cb7-44aa-8414-c81494d5bd47" />
+</p>
 
 ## About
 
