@@ -14,6 +14,18 @@ namespace PinnedAssets
 
         public static GUIContent Create = EditorGUIUtility.IconContent("d_CreateAddNew");
         public static GUIContent RemoveAsset = EditorGUIUtility.IconContent("CrossIcon");
+
+        public static GUIContent Edit = new GUIContent(EditorGUIUtility.IconContent("d_editicon.sml"))
+        {
+            text = "Edit",
+            tooltip = "Open & Edit Script"
+        };
+
+        public static GUIContent LoadScene = new GUIContent(EditorGUIUtility.IconContent("SceneLoadIn"))
+        {
+            text = "Open",
+            tooltip = "Open"
+        };
     }
 
     /// <summary>

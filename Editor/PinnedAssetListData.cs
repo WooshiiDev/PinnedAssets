@@ -15,7 +15,7 @@ namespace PinnedAssets
         /// Delegate for when the asset list is modified.
         /// </summary>
         /// <param name="assets"></param>
-        public delegate void ListMutatedDelegate(IEnumerable<Object> assets);
+        public delegate void ListMutatedDelegate(IEnumerable<PinnedAssetData> assets);
 
         /// <summary>
         /// Event called when <see cref="Profile"/> has been changed.
@@ -27,8 +27,8 @@ namespace PinnedAssets
         /// </summary>
         public static event ListMutatedDelegate OnAssetsChanged;
 
-        [SerializeField] private PinnedProfileData profile;
-        [SerializeField] private List<Object> assets = new List<Object>();
+        [SerializeReference] private PinnedProfileData profile;
+        [SerializeField] private List<PinnedAssetData> assets = new List<PinnedAssetData>();
         [SerializeField] private string filter;
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace PinnedAssets
         /// <summary>
         /// The displayed assets queried from the <see cref="Profile"/>.
         /// </summary>
-        public Object[] DisplayedAssets => assets.ToArray();
+        public PinnedAssetData[] DisplayedAssets => assets.ToArray();
 
         /// <summary>
         /// Is a filter applied to the current display.
@@ -95,17 +95,21 @@ namespace PinnedAssets
 
             for (int i = profile.Assets.Length - 1; i >= 0; i--)
             {
-                Object asset = profile.Assets[i];
+                PinnedAssetData asset = profile.Assets[i];
 
-                if (asset == null)
+                if (!asset.IsValid())
                 {
                     profile.RemoveAsset(i);
+                }
+                else
+                {
+                    profile.Assets[i].UpdateCache();
                 }
             }
 
             // Collect view 
 
-            Object[] assetList = HasValidFilter
+            PinnedAssetData[] assetList = HasValidFilter
                 ? GetFilteredAssets(filter)
                 : profile.Assets;
 
@@ -128,7 +132,7 @@ namespace PinnedAssets
         /// </summary>
         /// <param name="assets">The assets to add.</param>
         /// <exception cref="NullReferenceException">Thrown if the collection passed is null.</exception>
-        public void AddRange(IEnumerable<Object> assets)
+        public void AddRange(IEnumerable<Object> assets, int startIndex = -1)
         {
             if (assets == null)
             {
@@ -137,7 +141,12 @@ namespace PinnedAssets
 
             foreach (Object asset in assets)
             {
-                profile.AddAsset(asset);
+                profile.AddAsset(asset, startIndex);
+
+                if (startIndex > -1)
+                {
+                    startIndex++;
+                }
             }
 
             RefreshAssets();
@@ -147,9 +156,9 @@ namespace PinnedAssets
         /// Add an asset to this list.
         /// </summary>
         /// <param name="asset">The asset to add.</param>
-        public void Add(Object asset)
+        public void Add(Object asset, int index = -1)
         {
-            profile.AddAsset(asset);
+            profile.AddAsset(asset, index);
             RefreshAssets();
         }
 
@@ -201,12 +210,12 @@ namespace PinnedAssets
 
         // - Helpers
 
-        private Object[] GetFilteredAssets(string query)
+        private PinnedAssetData[] GetFilteredAssets(string query)
         {
             return GetFilteredAssets(profile.Assets, query);
         }
 
-        private Object[] GetFilteredAssets(Object[] assets, string query)
+        private PinnedAssetData[] GetFilteredAssets(PinnedAssetData[] assets, string query)
         {
             if (assets == null)
             {
@@ -215,21 +224,23 @@ namespace PinnedAssets
 
             if (string.IsNullOrEmpty(query))
             {
-                return assets;
+                return profile.Assets;
             }
 
             query = query.ToLower().Trim();
 
-            List<Object> filteredAssets = new List<Object>();
+            List<PinnedAssetData> filteredAssets = new List<PinnedAssetData>();
             for (int i = 0; i < assets.Length; i++)
             {
-                Object asset = assets[i];
+                PinnedAssetData data = assets[i];
+                Object asset = data.Asset;
+
                 string name = asset.name.ToLower();
                 string type = asset.GetType().Name.ToLower();
 
                 if (name.Contains(query) || type.Contains(query))
                 {
-                    filteredAssets.Add(asset);
+                    filteredAssets.Add(data);
                 }
             }
             return filteredAssets.ToArray();

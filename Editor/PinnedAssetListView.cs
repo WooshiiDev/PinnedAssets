@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -58,25 +59,19 @@ namespace PinnedAssets.Editors
                 return;
             }
 
-            Object asset = data.DisplayedAssets[index];
+            PinnedAssetData assetData = data.DisplayedAssets[index];
 
-            if (asset == null)
+            if (!assetData.IsValid())
             {
                 data.RefreshAssets();
                 Selection.objects = null;
                 return;
             }
 
-            EditorGUIUtility.SetIconSize(16f * Vector2.one);
-
-            Rect labelRect = GetAssetLabelRect(rect);
-            GUI.Label(labelRect, GetAssetContent(labelRect, asset));
-
-            if (GUI.Button(GetSmallButtonRect(rect), Icons.Trash, Styles.ToolbarButton))
-            {
-                data.Remove(asset);
-                serializedObject.Update();
-            }
+            Object asset = assetData.Asset;
+            PinnedAssetsDrawerCache
+                .Get(asset)
+                .OnGUI(rect, asset, data, serializedObject);
         }
 
         private void OnElementSelect(ReorderableList list)
@@ -86,7 +81,7 @@ namespace PinnedAssets.Editors
             Object[] selectedObjects = new Object[indices.Count];
             for (int i = 0; i < indices.Count; i++)
             {
-                selectedObjects[i] = data.Profile.Assets[indices[i]];
+                selectedObjects[i] = data.Profile.Assets[indices[i]].Asset;
             }
 
             Selection.objects = selectedObjects;

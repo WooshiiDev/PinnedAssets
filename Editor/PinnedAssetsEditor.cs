@@ -1,10 +1,53 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using UnityEditor;
 using Object = UnityEngine.Object;
 
 namespace PinnedAssets.Editors
 {
+    public static class PinnedAssetsDrawerCache
+    {
+        private static Dictionary<Type, PinnedAssetDrawer> drawers = new Dictionary<Type, PinnedAssetDrawer>();
+
+        public static void Collect()
+        {
+            IEnumerable<Type> types = Assembly
+                .GetExecutingAssembly()
+                .GetExportedTypes()
+                .Where(t => t.IsSubclassOf(typeof(PinnedAssetDrawer)));
+
+            drawers.Clear();
+            drawers.Add(typeof(Object), new PinnedAssetDrawer());
+            foreach (Type t in types)
+            {
+                if (t.IsAbstract)
+                {
+                    continue;
+                }
+
+                if (t == typeof(PinnedAssetDrawer))
+                {
+                    continue;
+                }
+
+                drawers.Add(t.BaseType.GenericTypeArguments[0], (PinnedAssetDrawer)Activator.CreateInstance(t));
+            }
+        }
+
+        public static PinnedAssetDrawer Get(Object asset)
+        {
+            if (asset == null || !drawers.ContainsKey(asset.GetType()))
+            {
+                return drawers[typeof(Object)];
+            }
+
+            return drawers[asset.GetType()];
+        }
+    }
+        
     [CustomEditor(typeof(PinnedAssetsData))]
     public class PinnedAssetsEditor : Editor
     {
@@ -25,21 +68,21 @@ namespace PinnedAssets.Editors
 
         private void OnEnable()
         {
-            SetupDisplay();
-            list = new PinnedAssetListView(Target.Display, serializedObject);
+            PinnedAssetsDrawerCache.Collect();
 
             PinnedAssetListData.OnAssetsChanged += RefreshList;
+            PinnedAssetsManager.OnAfterProcess += Refresh;
+
+            SetupDisplay();
         }
 
         private void OnDisable()
         {
             PinnedAssetListData.OnAssetsChanged -= RefreshList;
+            PinnedAssetsManager.OnAfterProcess -= Refresh;
         }
 
-        protected override void OnHeaderGUI()
-        {
-            
-        }
+        protected override void OnHeaderGUI() { }
 
         private void SetupDisplay()
         {
@@ -53,13 +96,26 @@ namespace PinnedAssets.Editors
             {
                 Data.Profile = Target.GetProfile(profileIndex);
             }
-            Data.RefreshAssets();
+            Refresh();
+            list = new PinnedAssetListView(Data, serializedObject);
         }
 
-        private void RefreshList(IEnumerable<Object> assets)
+        private void RefreshList(IEnumerable<PinnedAssetData> assets)
         {
-            EditorUtility.SetDirty(Target);
+            Save();
+        }
+
+        private void Refresh()
+        {
+            Data.RefreshAssets();
+            Save();
+        }
+
+        private void Save()
+        {
             serializedObject.Update();
+            serializedObject.ApplyModifiedProperties();
+            EditorUtility.SetDirty(target);
         }
 
         public override void OnInspectorGUI()
@@ -93,6 +149,7 @@ namespace PinnedAssets.Editors
                 if (GUILayout.Button(Icons.Create, EditorStyles.toolbarButton, GUILayout.Width(32f)))
                 {
                     Data.Profile = Target.CreateProfile();
+                    profileIndex = Target.GetIndex(Data.Profile);
                 }
 
                 EditorGUI.BeginChangeCheck();
