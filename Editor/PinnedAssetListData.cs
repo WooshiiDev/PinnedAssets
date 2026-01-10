@@ -97,13 +97,9 @@ namespace PinnedAssets
             {
                 PinnedAssetData asset = profile.Assets[i];
 
-                if (!asset.IsValid())
+                if (asset.Asset == null)
                 {
                     profile.RemoveAsset(i);
-                }
-                else
-                {
-                    profile.Assets[i].UpdateCache();
                 }
             }
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -60,7 +61,8 @@ namespace PinnedAssets
                 return;
             }
 
-            PinnedAssetData data = new PinnedAssetData(asset);
+            string guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
+            PinnedAssetData data = new PinnedAssetData(guid);
             if (index == -1)
             {
                 assets.Add(data);

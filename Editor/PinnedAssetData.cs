@@ -6,50 +6,30 @@ using Object = UnityEngine.Object;
 namespace PinnedAssets
 {
     /// <summary>
-    /// Representation of an asset.
+    /// A model that represents an asset.
     /// </summary>
     [Serializable]
-    public class PinnedAssetData : IEquatable<Object>
+    public class PinnedAssetData : IEquatable<PinnedAssetData>, IEquatable<Object>
     {
-        [SerializeField] private string path;
-        [SerializeField] private Object asset;
+        [SerializeField] private string guid;
 
-        /// <summary>
-        /// The asset this data represents.
-        /// </summary>
-        public Object Asset => asset;
-
-        /// <summary>
-        /// The project path for this asset.
-        /// </summary>
-        public string Path => path;
+        public Object Asset => AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(guid));
 
         /// <summary>
         /// Create a new pinned asset instance, giving the asset it represents.
         /// </summary>
-        /// <param name="asset">The asset this represents.</param>
-        public PinnedAssetData(Object asset)
+        /// <param name="guid">The representing guid.</param>
+        public PinnedAssetData(string guid)
         {
-            this.asset = asset;
-            UpdateCache();
+            this.guid = guid;
         }
 
-        public void UpdateCache()
+        public bool Equals(PinnedAssetData other)
         {
-            path = GetAssetPath();
-        }
+            if (other == null) return false;
 
-        private string GetAssetPath()
-        {
-            return AssetDatabase.GetAssetPath(asset);
+            return Equals(other.guid);
         }
-
-        public bool IsValid()
-        {
-            return asset != null;
-        }
-
-        // Comparisons
 
         public bool Equals(Object other)
         {
@@ -58,36 +38,12 @@ namespace PinnedAssets
                 return false;
             }
 
-            return asset.GetInstanceID().Equals(other.GetInstanceID());
-        }
-        public override bool Equals(object obj)
-        {
-            if (obj == null)
-            {
-                return false;
-            }
-
-            return Equals(obj as Object);
+            return Equals(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(other)));
         }
 
-        public override int GetHashCode()
+        private bool Equals(string guid)
         {
-            return asset.GetHashCode();
-        }
-
-        public static bool operator ==(PinnedAssetData a, PinnedAssetData b)
-        {
-            if (a is null || b is null)
-            {
-                return false;
-            }
-
-            return a.Equals(b);
-        }
-
-        public static bool operator !=(PinnedAssetData a, PinnedAssetData b)
-        {
-            return !(a == b);
+            return this.guid.Equals(guid);
         }
     }
 }
