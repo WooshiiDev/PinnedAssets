@@ -24,7 +24,10 @@ namespace PinnedAssets
         [SerializeReference]
         private PinnedAssetListData display = new PinnedAssetListData();
 
+        [SerializeField] private string activeProfileID;
+
         // - Properties
+
 
         /// <summary>
         /// The profiles this asset contains.
@@ -46,6 +49,10 @@ namespace PinnedAssets
             }
         }
 
+        public int ActiveProfileIndex => GetProfileIndex(ActiveProfileID);
+        public string ActiveProfileID => activeProfileID;
+        public PinnedProfileData ActiveProfile => GetProfileByID(ActiveProfileID);
+
         // - Methods
 
         /// <summary>
@@ -53,14 +60,35 @@ namespace PinnedAssets
         /// </summary>
         /// <param name="i">The index for the profile.</param>
         /// <returns>Returns the profile if one exists. If the index is out of range, it will return the first profile.</returns>
-        public PinnedProfileData GetProfile(int i)
+        public int GetProfileIndex(string id)
         {
-            if (i < 0 || i > profiles.Count)
+            if (string.IsNullOrWhiteSpace(id))
             {
-                return profiles[0];
+                throw new ArgumentNullException("id");
             }
 
-            return profiles[i];
+            for (int i = 0; i < profiles.Count; i++)
+            {
+                if (profiles[i].ID == id)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        public PinnedProfileData GetProfileByID(string id)
+        {
+            PinnedProfileData profile = null;
+            for (int i = 0; i < profiles.Count; i++)
+            {
+                if (profiles[i].ID == id)
+                {
+                    profile = profiles[i];
+                }
+            }
+
+            return profile;
         }
 
         /// <summary>
@@ -89,6 +117,39 @@ namespace PinnedAssets
             return profile;
         }
 
+        public void ValidateActiveProfile()
+        {
+            if (string.IsNullOrWhiteSpace(ActiveProfileID) || GetProfileIndex(ActiveProfileID) == -1)
+            {
+                activeProfileID = profiles[0].ID;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ID">The ID for the profile.</param>
+        public void SetProfile(string ID)
+        {
+            activeProfileID = ID;
+            ValidateActiveProfile();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        public void SetProfile(int index)
+        {
+            if (index < 0 || index >= profiles.Count)
+            {
+                return;
+            }
+
+            
+            SetProfile(profiles[index].ID);
+        }
+
         /// <summary>
         /// Delete a profile.
         /// </summary>
@@ -107,6 +168,31 @@ namespace PinnedAssets
             }
 
             profiles.Remove(profile);
+        }
+
+        /// <summary>
+        /// Deletes the current selected profile & selects the next appropriate profile in the list.
+        /// Profiles will not be deleted if there's only one that exists.
+        /// </summary>
+        public void DeleteCurrentProfile()
+        {
+            if (profiles.Count <= 1)
+            {
+                return;
+            }
+
+            int index = GetProfileIndex(activeProfileID);
+            DeleteProfile(GetProfileByID(activeProfileID));
+            SetProfile(Mathf.Clamp(index, 0, index));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        public void RenameCurrentProfile(string name)
+        {
+            ActiveProfile.SetName(name);
         }
 
         /// <summary>

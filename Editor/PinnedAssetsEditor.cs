@@ -55,8 +55,6 @@ namespace PinnedAssets.Editors
 
         private string search = string.Empty;
         private bool performDrag;
-
-        private int profileIndex;
         private PinnedAssetListView list;
 
         // - Properties
@@ -86,16 +84,8 @@ namespace PinnedAssets.Editors
 
         private void SetupDisplay()
         {
-            PinnedProfileData currentProfile = Data.Profile;
-            if (currentProfile != null)
-            {
-                profileIndex = Target.GetIndex(currentProfile);
-            }
+            SetProfile(Target.ActiveProfile.ID);
 
-            else
-            {
-                Data.Profile = Target.GetProfile(profileIndex);
-            }
             Refresh();
             list = new PinnedAssetListView(Data, serializedObject);
         }
@@ -148,23 +138,22 @@ namespace PinnedAssets.Editors
             {
                 if (GUILayout.Button(Icons.Create, EditorStyles.toolbarButton, GUILayout.Width(32f)))
                 {
-                    Data.Profile = Target.CreateProfile();
-                    profileIndex = Target.GetIndex(Data.Profile);
+                    PinnedProfileData profile = Target.CreateProfile();
+                    SetProfile(profile.ID);
                 }
 
                 EditorGUI.BeginChangeCheck();
-                profileIndex = EditorGUILayout.Popup(profileIndex, GetProfileNames(), Styles.ToolbarDropdownImage, GUILayout.Width(32f));
-
+                int index = EditorGUILayout.Popup(Target.ActiveProfileIndex, GetProfileNames(), Styles.ToolbarDropdownImage, GUILayout.Width(32f));
                 if (EditorGUI.EndChangeCheck())
                 {
-                    Data.Profile = Target.GetProfile(profileIndex);
+                    SetProfile(index);
                 }
 
                 EditorGUI.BeginChangeCheck();
-                string name = EditorGUILayout.DelayedTextField(Data.Profile.Name, EditorStyles.label);
+                string name = EditorGUILayout.DelayedTextField(Target.ActiveProfile.Name, EditorStyles.label);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    Data.Profile.SetName(name);
+                    Target.RenameCurrentProfile(name);
                 }
 
                 EditorGUI.BeginChangeCheck();
@@ -177,12 +166,9 @@ namespace PinnedAssets.Editors
                 EditorGUI.BeginDisabledGroup(Target.Profiles.Length == 1);
                 if (GUILayout.Button(Icons.Trash, EditorStyles.toolbarButton, GUILayout.Width(32f)))
                 {
-                    if (EditorUtility.DisplayDialog("Remove Profile", $"Would you like to delete {Data.Profile.Name}?", "Yes", "No"))
+                    if (EditorUtility.DisplayDialog("Remove Profile", $"Would you like to delete {Target.ActiveProfile.Name}?", "Yes", "No"))
                     {
-                        Target.DeleteProfile(Data.Profile);
-
-                        profileIndex = Mathf.Clamp(profileIndex, 0, Target.Profiles.Length - 1);
-                        Data.SetProfile(Target.Profiles[profileIndex]);
+                        Target.DeleteCurrentProfile();
                     }
                 }
                 EditorGUI.EndDisabledGroup();
@@ -232,6 +218,19 @@ namespace PinnedAssets.Editors
                     break;
 
             } 
+        }
+
+        private void SetProfile(int index)
+        {
+            Target.SetProfile(index);
+            Data.SetProfile(Target.ActiveProfile);
+        }
+
+
+        private void SetProfile(string ID)
+        {
+            Target.SetProfile(ID);
+            Data.SetProfile(Target.ActiveProfile);
         }
 
         // - Utils

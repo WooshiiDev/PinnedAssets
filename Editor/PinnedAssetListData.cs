@@ -34,23 +34,7 @@ namespace PinnedAssets
         /// <summary>
         /// The target profile.
         /// </summary>
-        public PinnedProfileData Profile
-        {
-            get
-            {
-                return profile;
-            }
-
-            set
-            {
-                if (profile == value)
-                {
-                    return;
-                }
-
-                SetProfile(value);
-            }
-        }
+        public PinnedProfileData Profile => profile;
 
         /// <summary>
         /// The displayed assets queried from the <see cref="Profile"/>.

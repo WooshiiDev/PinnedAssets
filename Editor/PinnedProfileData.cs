@@ -16,10 +16,16 @@ namespace PinnedAssets
     {
         // - Fields
 
+        [SerializeField] private string id;
         [SerializeField] private string name;
         [SerializeField] private List<PinnedAssetData> assets = new List<PinnedAssetData>();
 
         // - Properties
+
+        /// <summary>
+        /// The unique ID for this profile.
+        /// </summary>
+        public string ID => id;
 
         /// <summary>
         /// This profile's name.
@@ -40,6 +46,7 @@ namespace PinnedAssets
         public PinnedProfileData(string name)
         {
             this.name = name;
+            id = Guid.NewGuid().ToString();
         }
 
         // - Methods
