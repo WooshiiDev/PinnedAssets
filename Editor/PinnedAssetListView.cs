@@ -61,7 +61,7 @@ namespace PinnedAssets.Editors
 
             PinnedAssetData assetData = data.DisplayedAssets[index];
 
-            if (!assetData.IsValid())
+            if (assetData.Asset == null)
             {
                 data.RefreshAssets();
                 Selection.objects = null;

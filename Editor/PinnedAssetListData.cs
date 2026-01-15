@@ -34,23 +34,7 @@ namespace PinnedAssets
         /// <summary>
         /// The target profile.
         /// </summary>
-        public PinnedProfileData Profile
-        {
-            get
-            {
-                return profile;
-            }
-
-            set
-            {
-                if (profile == value)
-                {
-                    return;
-                }
-
-                SetProfile(value);
-            }
-        }
+        public PinnedProfileData Profile => profile;
 
         /// <summary>
         /// The displayed assets queried from the <see cref="Profile"/>.
@@ -97,13 +81,9 @@ namespace PinnedAssets
             {
                 PinnedAssetData asset = profile.Assets[i];
 
-                if (!asset.IsValid())
+                if (asset.Asset == null)
                 {
                     profile.RemoveAsset(i);
-                }
-                else
-                {
-                    profile.Assets[i].UpdateCache();
                 }
             }
 

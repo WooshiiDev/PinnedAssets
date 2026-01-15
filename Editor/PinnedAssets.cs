@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System;
+using Codice.CM.Common;
 
 namespace PinnedAssets
 {
@@ -23,6 +24,8 @@ namespace PinnedAssets
 
         [SerializeReference]
         private PinnedAssetListData display = new PinnedAssetListData();
+
+        [SerializeField] private string activeProfileID;
 
         // - Properties
 
@@ -46,6 +49,10 @@ namespace PinnedAssets
             }
         }
 
+        public int ActiveProfileIndex => GetProfileIndex(ActiveProfileID);
+        public string ActiveProfileID => activeProfileID;
+        public PinnedProfileData ActiveProfile => GetProfileByID(ActiveProfileID);
+
         // - Methods
 
         /// <summary>
@@ -53,14 +60,35 @@ namespace PinnedAssets
         /// </summary>
         /// <param name="i">The index for the profile.</param>
         /// <returns>Returns the profile if one exists. If the index is out of range, it will return the first profile.</returns>
-        public PinnedProfileData GetProfile(int i)
+        public int GetProfileIndex(string id)
         {
-            if (i < 0 || i > profiles.Count)
+            if (string.IsNullOrWhiteSpace(id))
             {
-                return profiles[0];
+                throw new ArgumentNullException("id");
             }
 
-            return profiles[i];
+            for (int i = 0; i < profiles.Count; i++)
+            {
+                if (profiles[i].ID == id)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        public PinnedProfileData GetProfileByID(string id)
+        {
+            PinnedProfileData profile = null;
+            for (int i = 0; i < profiles.Count; i++)
+            {
+                if (profiles[i].ID == id)
+                {
+                    profile = profiles[i];
+                }
+            }
+
+            return profile;
         }
 
         /// <summary>
@@ -79,10 +107,14 @@ namespace PinnedAssets
         /// <returns>Returns the created profile.</returns>
         public PinnedProfileData CreateProfile(string name)
         {
-            PinnedProfileData profile = new PinnedProfileData(name);
-            profile.SetName(name);
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException("Cannot create a profile with an empty name");
+            }
 
+            PinnedProfileData profile = new PinnedProfileData(name);
             profiles.Add(profile);
+            ValidateActiveProfile();
 
             AssetDatabase.SaveAssets();
 
@@ -94,34 +126,93 @@ namespace PinnedAssets
         /// </summary>
         /// <param name="profile">The profile instance to delete.</param>
         /// <exception cref="NullReferenceException">Thrown if the profile is null.</exception>
-        public void DeleteProfile(PinnedProfileData profile)
+        public void DeleteProfile(string id)
         {
+            PinnedProfileData profile = GetProfileByID(id);
+
             if (profile == null)
             {
-                throw new NullReferenceException();
-            }
-
-            if (!profiles.Contains(profile))
-            {
-                Debug.LogWarning($"Cannot delete Pinned Profile {profile.Name} as it does not exist on asset {name}.");
+                return;
             }
 
             profiles.Remove(profile);
+            ValidateActiveProfile();
         }
 
         /// <summary>
-        /// Get the index of a profile.
+        /// Rename a profile that has the given ID.
         /// </summary>
-        /// <param name="profile">The profile to find.</param>
-        /// <returns>Returns the index of a profile, otherwise will return -1.</returns>
-        public int GetIndex(PinnedProfileData profile)
+        /// <param name="id">The ID of the profile.</param>
+        /// <param name="name">The new name for the profile.</param>
+        public void RenameProfile(string id, string name) 
         {
+            PinnedProfileData profile = GetProfileByID(id);
+
             if (profile == null)
             {
-                return -1;
+                return;
             }
 
-            return profiles.IndexOf(profile);
+            profile.SetName(name);
+        }
+
+        // - Active Profile
+
+        /// <summary>
+        /// Set the active profile by index.
+        /// </summary>
+        /// <param name="index">The index of the profile in the list.</param>
+        public void SetActiveProfile(int index)
+        {
+            if (index < 0 || index >= profiles.Count)
+            {
+                return;
+            }
+            
+            SetActiveProfile(profiles[index].ID);
+        }
+
+        /// <summary>
+        /// Set profile by the ID.
+        /// </summary>
+        /// <param name="ID">The ID for the profile.</param>
+        public void SetActiveProfile(string ID)
+        {
+            activeProfileID = ID;
+            ValidateActiveProfile();
+        }
+
+        /// <summary>
+        /// Deletes the current selected profile & selects the next appropriate profile in the list.
+        /// Profiles will not be deleted if there's only one that exists.
+        /// </summary>
+        public void DeleteActiveProfile()
+        {
+            if (profiles.Count <= 1)
+            {
+                return;
+            }
+
+            int index = GetProfileIndex(activeProfileID);
+            DeleteProfile(activeProfileID);
+            SetActiveProfile(Mathf.Clamp(index, 0, index));
+        }
+
+        /// <summary>
+        /// Rename the current profile.
+        /// </summary>
+        /// <param name="name">The new name to give the profile.</param>
+        public void RenameActiveProfile(string name)
+        {
+            RenameProfile(ActiveProfileID, name);
+        }
+
+        public void ValidateActiveProfile()
+        {
+            if (string.IsNullOrWhiteSpace(ActiveProfileID) || GetProfileIndex(ActiveProfileID) == -1)
+            {
+                activeProfileID = profiles[0].ID;
+            }
         }
     }
 }
