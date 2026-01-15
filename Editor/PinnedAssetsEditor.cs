@@ -84,7 +84,7 @@ namespace PinnedAssets.Editors
 
         private void SetupDisplay()
         {
-            SetProfile(Target.ActiveProfile.ID);
+            SetProfile(Target.ActiveProfileID);
 
             Refresh();
             list = new PinnedAssetListView(Data, serializedObject);
@@ -153,7 +153,7 @@ namespace PinnedAssets.Editors
                 string name = EditorGUILayout.DelayedTextField(Target.ActiveProfile.Name, EditorStyles.label);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    Target.RenameCurrentProfile(name);
+                    Target.RenameActiveProfile(name);
                 }
 
                 EditorGUI.BeginChangeCheck();
@@ -168,7 +168,7 @@ namespace PinnedAssets.Editors
                 {
                     if (EditorUtility.DisplayDialog("Remove Profile", $"Would you like to delete {Target.ActiveProfile.Name}?", "Yes", "No"))
                     {
-                        Target.DeleteCurrentProfile();
+                        Target.DeleteActiveProfile();
                     }
                 }
                 EditorGUI.EndDisabledGroup();
@@ -222,14 +222,13 @@ namespace PinnedAssets.Editors
 
         private void SetProfile(int index)
         {
-            Target.SetProfile(index);
+            Target.SetActiveProfile(index);
             Data.SetProfile(Target.ActiveProfile);
         }
 
-
         private void SetProfile(string ID)
         {
-            Target.SetProfile(ID);
+            Target.SetActiveProfile(ID);
             Data.SetProfile(Target.ActiveProfile);
         }
 
