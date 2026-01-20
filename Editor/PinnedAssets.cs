@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System;
-using Codice.CM.Common;
 
 namespace PinnedAssets
 {
