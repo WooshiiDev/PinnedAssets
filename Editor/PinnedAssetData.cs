@@ -15,6 +15,8 @@ namespace PinnedAssets
 
         public Object Asset => AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(guid));
 
+        public string ID => guid;
+
         /// <summary>
         /// Create a new pinned asset instance, giving the asset it represents.
         /// </summary>

@@ -25,7 +25,17 @@ namespace PinnedAssets
         /// <summary>
         /// The unique ID for this profile.
         /// </summary>
-        public string ID => id;
+        public string ID
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    id = CreateGUID();
+                }
+                return id;
+            }
+        }
 
         /// <summary>
         /// This profile's name.
@@ -46,10 +56,25 @@ namespace PinnedAssets
         public PinnedProfileData(string name)
         {
             this.name = name;
-            id = Guid.NewGuid().ToString();
+            id = CreateGUID();
+        }
+
+        private string CreateGUID()
+        {
+            return Guid.NewGuid().ToString();
         }
 
         // - Methods
+
+        public PinnedAssetData GetAsset(string id)
+        {
+            return assets.Find(a => a.ID.Equals(id));
+        }
+
+        public PinnedAssetData GetAsset(int index)
+        {
+            return assets[index];
+        }
 
         /// <summary>
         /// Add an asset to the profile.
@@ -63,7 +88,7 @@ namespace PinnedAssets
                 throw new NullReferenceException();
             }
 
-            if (Contains(asset))
+            if (IndexOf(asset) != -1)
             {
                 return;
             }
@@ -86,14 +111,14 @@ namespace PinnedAssets
         /// <param name="asset">The asset to remove.</param>
         /// <exception cref="NullReferenceException">This exception will be thrown if the asset passed is null.</exception>
         /// <returns>Returns true if the asset is successfully deleted otherwise this will return false.</returns>
-        public bool RemoveAsset(Object asset)
+        public bool RemoveAsset(string id)
         {
-            if (asset == null)
+            if (string.IsNullOrEmpty(id))
             {
-                throw new NullReferenceException();
+                return false;
             }
 
-            int index = IndexOf(asset);
+            int index = IndexOf(id);
             if (index == -1)
             {
                 return false;
@@ -170,32 +195,40 @@ namespace PinnedAssets
 
             return other.name.Equals(name);
         }
-        
-        /// <summary>
-        /// Check if this profile contains an asset.
-        /// </summary>
-        /// <param name="asset"></param>
-        /// <returns>Returns true if the asset exists, otherwise returns false. If the asset passed is null, this will also return false.</returns>
-        public bool Contains(Object asset)
-        {
-            return IndexOf(asset) != -1;
-        }
-    
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="asset"></param>
         /// <returns></returns>
-        public int IndexOf(Object asset)
+        public int IndexOf(string id)
         {
-            if (asset == null)
+            if (string.IsNullOrEmpty(id))
             {
                 return -1;
             }
 
             for (int i = 0; i < assets.Count; i++)
             {
-                if (assets[i].Equals(asset))
+                if (assets[i].ID.Equals(id))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        private int IndexOf(Object asset)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return -1;
+            }
+
+            for (int i = 0; i < assets.Count; i++)
+            {
+                if (assets[i].Asset == asset)
                 {
                     return i;
                 }

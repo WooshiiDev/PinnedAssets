@@ -15,16 +15,13 @@ namespace PinnedAssets
 
         // - Fields
 
-        [SerializeReference]
-        private List<PinnedProfileData> profiles = new List<PinnedProfileData>()
+        [SerializeField] private List<PinnedProfileData> profiles = new List<PinnedProfileData>()
         {
             new PinnedProfileData("Default")
         };
 
-        [SerializeReference]
-        private PinnedAssetListData display = new PinnedAssetListData();
-
-        [SerializeField] private string activeProfileID;
+        [SerializeField] private string activeProfileID = string.Empty;
+        [SerializeField] private string filter;
 
         // - Properties
 
@@ -32,27 +29,37 @@ namespace PinnedAssets
         /// The profiles this asset contains.
         /// </summary>
         public PinnedProfileData[] Profiles => profiles.ToArray();
-        
-        /// <summary>
-        /// The cached list data for this asset.
-        /// </summary>
-        public PinnedAssetListData Display
+
+        public int ActiveProfileIndex
         {
-            get
-            {
-                if (display == null)
+            get 
+            { 
+                if (ActiveProfileID == string.Empty)
                 {
-                    display = new PinnedAssetListData();
+                    activeProfileID = profiles[0].ID;
                 }
-                return display;
+
+                return GetProfileIndex(ActiveProfileID);
             }
         }
-
-        public int ActiveProfileIndex => GetProfileIndex(ActiveProfileID);
         public string ActiveProfileID => activeProfileID;
+
         public PinnedProfileData ActiveProfile => GetProfileByID(ActiveProfileID);
+        public string Filter
+        {
+            get => filter;
+            set => filter = value;
+        }
 
         // - Methods
+        
+        public IEnumerable<PinnedAssetData> GetProfileAssets(string id)
+        {
+            foreach (PinnedAssetData data in GetProfileByID(id).Assets)
+            {
+                yield return data;
+            }
+        }
 
         /// <summary>
         /// Get a profile at the given index.

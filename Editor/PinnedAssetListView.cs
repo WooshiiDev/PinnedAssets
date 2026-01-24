@@ -1,7 +1,9 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Analytics;
 using Object = UnityEngine.Object;
 
 namespace PinnedAssets.Editors
@@ -11,7 +13,7 @@ namespace PinnedAssets.Editors
     /// </summary>
     public sealed class PinnedAssetListView
     {
-        private PinnedAssetListData data;
+        private PinnedAssetsController controller;
 
         private SerializedObject serializedObject;
         private ReorderableList list;
@@ -21,12 +23,12 @@ namespace PinnedAssets.Editors
         /// </summary>
         /// <param name="data">The data the list uses.</param>
         /// <param name="serializedObject">The serialized object this list requires.</param>
-        public PinnedAssetListView(PinnedAssetListData data, SerializedObject serializedObject)
+        public PinnedAssetListView(PinnedAssetsController data, SerializedObject serializedObject)
         {
-            this.data = data;
+            this.controller = data;
             this.serializedObject = serializedObject;
 
-            list = new ReorderableList(serializedObject, GetProfileAssets())
+            list = new ReorderableList(GetProfileAssets(), typeof(PinnedAssetData))
             {
                 displayAdd = false,
                 displayRemove = false,
@@ -48,49 +50,30 @@ namespace PinnedAssets.Editors
 
         public void Draw()
         {
-            list.draggable = !data.HasValidFilter;
+            //list.draggable = controller.;
             list.DoLayoutList();
         }
 
         private void OnElementDraw(Rect rect, int index, bool active, bool focused)
         {
-            if (rect.height == 0 || index < 0 || index >= data.DisplayedAssets.Length)
+            if (rect.height == 0 || index < 0 || index >= list.count)
             {
                 return;
             }
 
-            PinnedAssetData assetData = data.DisplayedAssets[index];
-
-            if (assetData.Asset == null)
-            {
-                data.RefreshAssets();
-                Selection.objects = null;
-                return;
-            }
-
-            Object asset = assetData.Asset;
             PinnedAssetsDrawerCache
-                .Get(asset)
-                .OnGUI(rect, asset, data, serializedObject);
+                .Get(controller.GetActiveAssetType(index))
+                .OnGUI(rect, controller.GetActiveAsset(index), controller, serializedObject);
         }
 
         private void OnElementSelect(ReorderableList list)
         {
-            var indices = list.selectedIndices;
-
-            Object[] selectedObjects = new Object[indices.Count];
-            for (int i = 0; i < indices.Count; i++)
-            {
-                selectedObjects[i] = data.Profile.Assets[indices[i]].Asset;
-            }
-
-            Selection.objects = selectedObjects;
+            controller.SelectActiveAssetFromReorderable(list.selectedIndices);
         }
 
-        private void OnElementReorder(ReorderableList list, int a, int b)
+        private void OnElementReorder(ReorderableList list, int oldIndex, int newIndex)
         {
-            data.Profile.Move(a, b);
-            data.RefreshAssets();
+            controller.MoveAsset(oldIndex, newIndex);
         }
 
         // - Rect setup
@@ -109,11 +92,9 @@ namespace PinnedAssets.Editors
 
         // - Helpers 
 
-        private SerializedProperty GetProfileAssets()
+        private IList GetProfileAssets()
         {
-            return serializedObject
-                .FindProperty("display")
-                .FindPropertyRelative("assets");
+            return controller.ActiveProfile.Assets;
         }
 
         private GUIContent GetAssetContent(Rect rect, Object asset)

@@ -37,17 +37,17 @@ namespace PinnedAssets.Editors
             }
         }
 
-        public static PinnedAssetDrawer Get(Object asset)
+        public static PinnedAssetDrawer Get(Type type)
         {
-            if (asset == null || !drawers.ContainsKey(asset.GetType()))
+            if (type == null || !drawers.ContainsKey(type))
             {
                 return drawers[typeof(Object)];
             }
 
-            return drawers[asset.GetType()];
+            return drawers[type];
         }
     }
-        
+
     [CustomEditor(typeof(PinnedAssetsData))]
     public class PinnedAssetsEditor : Editor
     {
@@ -55,49 +55,43 @@ namespace PinnedAssets.Editors
 
         private string search = string.Empty;
         private bool performDrag;
+        private PinnedAssetsController controller;
         private PinnedAssetListView list;
 
         // - Properties
 
         private PinnedAssetsData Target => target as PinnedAssetsData;
-        private PinnedAssetListData Data => Target.Display;
+        private PinnedAssetListView List
+        {
+            get
+            {
+                if (list == null)
+                {
+                    list = new PinnedAssetListView(controller, serializedObject);
+                }
+                return list;
+            }
+        }
 
         // - Methods
 
         private void OnEnable()
         {
             PinnedAssetsDrawerCache.Collect();
-
-            PinnedAssetListData.OnAssetsChanged += RefreshList;
             PinnedAssetsManager.OnAfterProcess += Refresh;
 
-            SetupDisplay();
+            controller = new PinnedAssetsController(Target);
         }
 
         private void OnDisable()
         {
-            PinnedAssetListData.OnAssetsChanged -= RefreshList;
             PinnedAssetsManager.OnAfterProcess -= Refresh;
         }
 
         protected override void OnHeaderGUI() { }
 
-        private void SetupDisplay()
-        {
-            SetProfile(Target.ActiveProfileID);
-
-            Refresh();
-            list = new PinnedAssetListView(Data, serializedObject);
-        }
-
-        private void RefreshList(IEnumerable<PinnedAssetData> assets)
-        {
-            Save();
-        }
-
         private void Refresh()
         {
-            Data.RefreshAssets();
             Save();
         }
 
@@ -160,7 +154,7 @@ namespace PinnedAssets.Editors
                 search = EditorGUILayout.TextField(search, EditorStyles.toolbarSearchField);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    Data.ApplyFilter(search);
+                    controller.SetFilter(search);
                 }
 
                 EditorGUI.BeginDisabledGroup(Target.Profiles.Length == 1);
@@ -183,7 +177,7 @@ namespace PinnedAssets.Editors
 
         private void DrawAssets()
         {
-            list.Draw();
+            List.Draw();
         }
 
         private void HandleEvents(Rect rect, Event evt)
@@ -207,7 +201,7 @@ namespace PinnedAssets.Editors
                     if (evt.type == EventType.DragPerform)
                     {
                         DragAndDrop.AcceptDrag();
-                        Data.AddRange(DragAndDrop.objectReferences);
+                        controller.AddActiveAssets(DragAndDrop.objectReferences);
                         performDrag = false;
                     }
 
@@ -223,13 +217,13 @@ namespace PinnedAssets.Editors
         private void SetProfile(int index)
         {
             Target.SetActiveProfile(index);
-            Data.SetProfile(Target.ActiveProfile);
+            controller.SetActiveProfile(index);
         }
 
         private void SetProfile(string ID)
         {
             Target.SetActiveProfile(ID);
-            Data.SetProfile(Target.ActiveProfile);
+            controller.SetActiveProfile(ID);
         }
 
         // - Utils
@@ -246,4 +240,5 @@ namespace PinnedAssets.Editors
             return names.ToArray();
         }
     }
+
 }
