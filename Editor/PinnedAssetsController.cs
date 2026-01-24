@@ -175,7 +175,7 @@ namespace PinnedAssets.Editors
 
         public Type GetActiveAssetType(int index)
         {
-            return ActiveProfile.GetAsset(index).Asset.GetType();
+            return GetActiveAsset(index).Asset.GetType();
         }
 
         public Type GetActiveAssetType(string assetId)
