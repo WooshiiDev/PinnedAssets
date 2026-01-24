@@ -66,16 +66,28 @@ namespace PinnedAssets
 
         // - Methods
 
+        /// <summary>
+        /// Get an asset with the given id.
+        /// </summary>
+        /// <param name="id">The id to look for.</param>
+        /// <returns>Returns the asset with the id if found, otherwise returns false.</returns>
         public PinnedAssetData GetAsset(string id)
         {
             return assets.Find(a => a.ID.Equals(id));
         }
 
+
+        /// <summary>
+        /// Get an asset.
+        /// </summary>
+        /// <param name="index">The index to access.</param>
+        /// <returns>Returns the asset at the given index, otherwise returns false.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">The index passed is out of range of the asset count.</exception>
         public PinnedAssetData GetAsset(int index)
         {
             if (index < 0 || index >= assets.Count)
             {
-                return null;
+                throw new ArgumentOutOfRangeException($"Invalid index {index} accessed on profile {name}.");
             }
 
             return assets[index];
@@ -202,10 +214,10 @@ namespace PinnedAssets
         }
 
         /// <summary>
-        /// 
+        /// Get the index of an asset.
         /// </summary>
-        /// <param name="asset"></param>
-        /// <returns></returns>
+        /// <param name="id">The asset id.</param>
+        /// <returns>Returns the index of the found index, otherwise will return -1.</returns>
         public int IndexOf(string id)
         {
             if (string.IsNullOrEmpty(id))

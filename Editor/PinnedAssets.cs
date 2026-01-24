@@ -29,72 +29,85 @@ namespace PinnedAssets
         /// The profiles this asset contains.
         /// </summary>
         public PinnedProfileData[] Profiles => profiles.ToArray();
-
+        
+        /// <summary>
+        /// The current active profile.
+        /// </summary>
+        public PinnedProfileData ActiveProfile => GetProfile(ActiveProfileID);
+        
+        /// <summary>
+        /// The active profile index.
+        /// </summary>
         public int ActiveProfileIndex
         {
             get 
             { 
-                if (ActiveProfileID == string.Empty)
+                if (activeProfileID == string.Empty)
                 {
                     activeProfileID = profiles[0].ID;
                 }
-
                 return GetProfileIndex(ActiveProfileID);
             }
         }
-        public string ActiveProfileID => activeProfileID;
 
-        public PinnedProfileData ActiveProfile => GetProfileByID(ActiveProfileID);
+        /// <summary>
+        /// The active profile ID.
+        /// </summary>
+        public string ActiveProfileID
+        {
+            get
+            {
+                if (activeProfileID== string.Empty)
+                {
+                    activeProfileID = profiles[0].ID;
+                }
+                return activeProfileID;
+            }
+        }
+        
+        /// <summary>
+        /// The search filter applied.
+        /// </summary>
         public string Filter
         {
             get => filter;
             set => filter = value;
         }
 
-        // - Methods
-        
-        public IEnumerable<PinnedAssetData> GetProfileAssets(string id)
+        // - Profiles
+
+        /// <summary>
+        /// Get a profile with the given id.
+        /// </summary>
+        /// <param name="id">The id.</param>
+        /// <returns>Returns a profile if one is found with the given id, otherwise returns null.</returns>
+        public PinnedProfileData GetProfile(string id)
         {
-            foreach (PinnedAssetData data in GetProfileByID(id).Assets)
+            for (int i = 0; i < profiles.Count; i++)
             {
-                yield return data;
+                if (profiles[i].ID == id)
+                {
+                    return profiles[i];
+                }
             }
+
+            return null;
         }
 
         /// <summary>
         /// Get a profile at the given index.
         /// </summary>
-        /// <param name="i">The index for the profile.</param>
-        /// <returns>Returns the profile if one exists. If the index is out of range, it will return the first profile.</returns>
-        public int GetProfileIndex(string id)
+        /// <param name="index">The profile index.</param>
+        /// <returns>Returns the profile at the index.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Throws if the index passed is outside the profile count.</exception>
+        public PinnedProfileData GetProfile(int index)
         {
-            if (string.IsNullOrWhiteSpace(id))
+            if (index < 0 || index >= profiles.Count)
             {
-                throw new ArgumentNullException("id");
+                throw new ArgumentOutOfRangeException();
             }
 
-            for (int i = 0; i < profiles.Count; i++)
-            {
-                if (profiles[i].ID == id)
-                {
-                    return i;
-                }
-            }
-            return -1;
-        }
-
-        public PinnedProfileData GetProfileByID(string id)
-        {
-            PinnedProfileData profile = null;
-            for (int i = 0; i < profiles.Count; i++)
-            {
-                if (profiles[i].ID == id)
-                {
-                    profile = profiles[i];
-                }
-            }
-
-            return profile;
+            return profiles[index];
         }
 
         /// <summary>
@@ -134,7 +147,7 @@ namespace PinnedAssets
         /// <exception cref="NullReferenceException">Thrown if the profile is null.</exception>
         public void DeleteProfile(string id)
         {
-            PinnedProfileData profile = GetProfileByID(id);
+            PinnedProfileData profile = GetProfile(id);
 
             if (profile == null)
             {
@@ -152,7 +165,7 @@ namespace PinnedAssets
         /// <param name="name">The new name for the profile.</param>
         public void RenameProfile(string id, string name) 
         {
-            PinnedProfileData profile = GetProfileByID(id);
+            PinnedProfileData profile = GetProfile(id);
 
             if (profile == null)
             {
@@ -160,6 +173,28 @@ namespace PinnedAssets
             }
 
             profile.SetName(name);
+        }
+
+        /// <summary>
+        /// Finds the index of a profile.
+        /// </summary>
+        /// <param name="i">The index for the profile.</param>
+        /// <returns>Returns the profile index if one is found. If the index is out of range, it will return -1.</returns>
+        private int GetProfileIndex(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentNullException("id");
+            }
+
+            for (int i = 0; i < profiles.Count; i++)
+            {
+                if (profiles[i].ID == id)
+                {
+                    return i;
+                }
+            }
+            return -1;
         }
 
         // - Active Profile
@@ -175,7 +210,7 @@ namespace PinnedAssets
                 return;
             }
             
-            SetActiveProfile(profiles[index].ID);
+            SetActiveProfile(GetProfile(index).ID);
         }
 
         /// <summary>

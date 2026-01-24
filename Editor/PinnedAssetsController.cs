@@ -27,11 +27,18 @@ namespace PinnedAssets.Editors
 
         private readonly PinnedAssetsData model;
 
-        public string ActiveProfileID => model.ActiveProfileID;
-        public PinnedProfileData ActiveProfile { get; private set; }
-        public bool HasFilter => !string.IsNullOrEmpty(model.Filter);
-        public List<AssetLabelData> DisplayedAssets { get; private set; }
+        private PinnedProfileData ActiveProfile;
+        private List<AssetLabelData> activeAssets;
 
+        public AssetLabelData[] ActiveAssets => activeAssets.ToArray();
+        public int ActiveAssetCount => activeAssets.Count;
+        public string ActiveProfileID => model.ActiveProfileID;
+        public bool HasFilter => !string.IsNullOrEmpty(model.Filter);
+
+        /// <summary>
+        /// Create a controller instance.
+        /// </summary>
+        /// <param name="data">The asset data this controller communicates with.</param>
         public PinnedAssetsController(PinnedAssetsData data)
         {
             model = data;
@@ -40,36 +47,46 @@ namespace PinnedAssets.Editors
 
         // - Profile
 
+        /// <summary>
+        /// Create a new profile and select it.
+        /// </summary>
         public void CreateNewProfile()
         {
             SetActiveProfile_Internal(model.CreateProfile());
         }
 
+        /// <summary>
+        /// Set the active profile.
+        /// </summary>
+        /// <param name="id">The id of the profile.</param>
         public void SetActiveProfile(string id)
         {
-            SetActiveProfile_Internal(GetProfile(ActiveProfileID));
+            SetActiveProfile_Internal(model.GetProfile(id));
         }
 
+        /// <summary>
+        /// Set the active profile.
+        /// </summary>
+        /// <param name="index">The index of the profile.</param>
         public void SetActiveProfile(int index)
         {
-            SetActiveProfile_Internal(GetProfile(ActiveProfileID));
+            SetActiveProfile_Internal(model.GetProfile(index));
         }
 
         private void SetActiveProfile_Internal(PinnedProfileData data)
         {
             model.SetActiveProfile(data.ID);
             ActiveProfile = data;
-            UpdateAssetList();
+            SetFilter(string.Empty);
             OnProfileChanged?.Invoke();
         }
-
-        private PinnedProfileData GetProfile(string id)
-        {
-            return model.GetProfileByID(id);
-        }
-
+        
         // - Assets
 
+        /// <summary>
+        /// Apply the search filter.
+        /// </summary>
+        /// <param name="filter">The search filter.</param>
         public void SetFilter(string filter)
         {
             model.Filter = filter;
@@ -99,7 +116,7 @@ namespace PinnedAssets.Editors
         /// Remove an asset at the given index.
         /// </summary>
         /// <remarks>
-        /// This removes the given asset from <see cref="Profile"/> first, and then will update the results for <seealso cref="DisplayedAssets"/>.
+        /// This removes the given asset from <see cref="Profile"/> first, and then will update the results for <seealso cref="activeAssets"/>.
         /// </remarks>
         /// <param name="index">The index of the asset to remove.</param>
         public void RemoveActiveAsset(string id)
@@ -108,6 +125,11 @@ namespace PinnedAssets.Editors
             UpdateAssetList();
         }
 
+        /// <summary>
+        /// Move an asset to a new index.
+        /// </summary>
+        /// <param name="oldIndex">The old index.</param>
+        /// <param name="newIndex">The new index.</param>
         public void MoveAsset(int oldIndex, int newIndex)
         {
             ActiveProfile.Move(oldIndex, newIndex);
@@ -116,16 +138,11 @@ namespace PinnedAssets.Editors
 
         private void UpdateAssetList()
         {
-            DisplayedAssets = new List<AssetLabelData>(GetFilteredActiveAssets());
+            activeAssets = new List<AssetLabelData>(GetFilteredActiveAssets());
             OnAssetsChanged?.Invoke();
         }
 
         // - GUI Info
-
-        public AssetLabelData GetActiveAsset(int index)
-        {
-            return DisplayedAssets[index];
-        }
 
         private IEnumerable<AssetLabelData> GetFilteredActiveAssets()
         {

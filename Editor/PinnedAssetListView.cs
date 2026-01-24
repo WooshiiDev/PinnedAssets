@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -61,12 +62,12 @@ namespace PinnedAssets.Editors
 
         private void OnElementDraw(Rect rect, int index, bool active, bool focused)
         {
-            if (index >= controller.DisplayedAssets.Count)
+            if (index >= controller.ActiveAssets.Length)
             {
                 return;
             }
 
-            AssetLabelData label = controller.GetActiveAsset(index);
+            AssetLabelData label = controller.ActiveAssets[index];
             Type assetType = label.Asset.GetType();
 
             PinnedAssetsDrawerCache
@@ -86,7 +87,7 @@ namespace PinnedAssets.Editors
 
         private IList GetProfileAssets()
         {
-            return controller.DisplayedAssets;
+            return controller.ActiveAssets;
         }
 
         private void UpdateList()

@@ -220,12 +220,6 @@ namespace PinnedAssets.Editors
             controller.SetActiveProfile(index);
         }
 
-        private void SetProfile(string ID)
-        {
-            Target.SetActiveProfile(ID);
-            controller.SetActiveProfile(ID);
-        }
-
         // - Utils
 
         private string[] GetProfileNames()
