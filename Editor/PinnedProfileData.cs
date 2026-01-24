@@ -73,6 +73,11 @@ namespace PinnedAssets
 
         public PinnedAssetData GetAsset(int index)
         {
+            if (index < 0 || index >= assets.Count)
+            {
+                return null;
+            }
+
             return assets[index];
         }
 
