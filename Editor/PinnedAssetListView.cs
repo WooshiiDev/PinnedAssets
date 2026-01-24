@@ -9,7 +9,7 @@ namespace PinnedAssets.Editors
     /// <summary>
     /// Class that handles the GUI view for <see cref="PinnedAssetListData"/>.
     /// </summary>
-    public sealed class PinnedAssetListView
+    public sealed class PinnedAssetListView : IDisposable
     {
         private PinnedAssetsController controller;
 
@@ -42,6 +42,13 @@ namespace PinnedAssets.Editors
                 onReorderCallbackWithDetails = OnElementReorder,
                 onSelectCallback = OnElementSelect,
             };
+
+            controller.OnAssetsChanged += UpdateList;
+        }
+
+        public void Dispose()
+        {
+            controller.OnAssetsChanged -= UpdateList;
         }
 
         // - Reorderable List GUI
@@ -60,10 +67,10 @@ namespace PinnedAssets.Editors
             }
 
             AssetLabelData label = controller.GetActiveAsset(index);
-            Type type = controller.GetActiveAssetType(index);
+            Type assetType = label.Asset.GetType();
 
             PinnedAssetsDrawerCache
-                .Get(type)
+                .Get(assetType)
                 .OnGUI(rect, label, controller, serializedObject);
         }
 
@@ -81,7 +88,12 @@ namespace PinnedAssets.Editors
 
         private IList GetProfileAssets()
         {
-            return controller.ActiveProfile.Assets;
+            return controller.DisplayedAssets;
+        }
+
+        private void UpdateList()
+        {
+            list.list = GetProfileAssets();
         }
     }
 }

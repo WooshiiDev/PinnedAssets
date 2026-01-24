@@ -22,6 +22,9 @@ namespace PinnedAssets.Editors
 
     public class PinnedAssetsController
     {
+        public Action OnProfileChanged;
+        public Action OnAssetsChanged;
+
         private readonly PinnedAssetsData model;
 
         public string ActiveProfileID => model.ActiveProfileID;
@@ -52,6 +55,7 @@ namespace PinnedAssets.Editors
             model.SetActiveProfile(data.ID);
             ActiveProfile = data;
             UpdateAssetList();
+            OnProfileChanged?.Invoke();
         }
 
         /// <summary>
@@ -134,6 +138,7 @@ namespace PinnedAssets.Editors
         private void UpdateAssetList()
         {
             DisplayedAssets = new List<AssetLabelData>(GetFilteredActiveAssets());
+            OnAssetsChanged?.Invoke();
         }
 
         // - GUI Info
