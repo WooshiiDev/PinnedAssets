@@ -50,20 +50,23 @@ namespace PinnedAssets.Editors
 
         public void Draw()
         {
-            //list.draggable = controller.;
+            list.draggable = !controller.HasFilter;
             list.DoLayoutList();
         }
 
         private void OnElementDraw(Rect rect, int index, bool active, bool focused)
         {
-            if (rect.height == 0 || index < 0 || index >= list.count)
+            if (index >= controller.DisplayedAssets.Count)
             {
                 return;
             }
 
+            AssetLabelData label = controller.GetActiveAsset(index);
+            Type type = controller.GetActiveAssetType(index);
+
             PinnedAssetsDrawerCache
-                .Get(controller.GetActiveAssetType(index))
-                .OnGUI(rect, controller.GetActiveAsset(index), controller, serializedObject);
+                .Get(type)
+                .OnGUI(rect, label, controller, serializedObject);
         }
 
         private void OnElementSelect(ReorderableList list)

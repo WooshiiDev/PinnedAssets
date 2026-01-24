@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEditor.VersionControl;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -28,6 +26,8 @@ namespace PinnedAssets.Editors
 
         public string ActiveProfileID => model.ActiveProfileID;
         public PinnedProfileData ActiveProfile { get; private set; }
+        public bool HasFilter => !string.IsNullOrEmpty(model.Filter);
+        public List<AssetLabelData> DisplayedAssets { get; private set; }
 
         public PinnedAssetsController(PinnedAssetsData data)
         {
@@ -39,15 +39,19 @@ namespace PinnedAssets.Editors
 
         public void SetActiveProfile(string id)
         {
-            model.SetActiveProfile(id);
-            ActiveProfile = GetProfile(ActiveProfileID);
-
+            SetActiveProfile_Internal(GetProfile(ActiveProfileID));
         }
 
         public void SetActiveProfile(int index)
         {
-            model.SetActiveProfile(index);
-            ActiveProfile = GetProfile(ActiveProfileID);
+            SetActiveProfile_Internal(GetProfile(ActiveProfileID));
+        }
+
+        private void SetActiveProfile_Internal(PinnedProfileData data)
+        {
+            model.SetActiveProfile(data.ID);
+            ActiveProfile = data;
+            UpdateAssetList();
         }
 
         /// <summary>
@@ -74,6 +78,7 @@ namespace PinnedAssets.Editors
         public void SetFilter(string filter)
         {
             model.Filter = filter;
+            UpdateAssetList();
         }
 
         /// <summary>
@@ -84,6 +89,7 @@ namespace PinnedAssets.Editors
         {
             GetActiveProfile()
                 .AddAsset(asset, index);
+            UpdateAssetList();
         }
 
         /// <summary>
@@ -115,64 +121,48 @@ namespace PinnedAssets.Editors
         {
             GetActiveProfile()
                 .RemoveAsset(id);
+
+            UpdateAssetList();
         }
 
         public void MoveAsset(int oldIndex, int newIndex)
         {
             ActiveProfile.Move(oldIndex, newIndex);
+            UpdateAssetList();
+        }
+
+        private void UpdateAssetList()
+        {
+            DisplayedAssets = new List<AssetLabelData>(GetFilteredActiveAssets());
         }
 
         // - GUI Info
 
-        public IEnumerable<AssetLabelData> GetActiveAssets()
-        {
-            foreach (PinnedAssetData asset in GetActiveProfile().Assets)
-            {
-                yield return CreateLabel(asset);
-            }
-        }
-
         public AssetLabelData GetActiveAsset(string id)
         {
-            return CreateLabel(GetActiveProfile().GetAsset(id));
+            return CreateLabel(ActiveProfile.GetAsset(id));
         }
         
         public AssetLabelData GetActiveAsset(int index)
         {
-            return CreateLabel(GetActiveProfile().GetAsset(index));
+            return DisplayedAssets[index];
         }
 
-        public IList GetFilteredActiveAssets()
+        private IEnumerable<AssetLabelData> GetFilteredActiveAssets()
         {
-            return GetFilteredActiveAssets(GetActiveProfile().Assets, model.Filter);
+            return GetFilteredActiveAssets(ActiveProfile.Assets);
         }
 
-        public IList GetFilteredActiveAssets(PinnedAssetData[] assets, string query)
+        private IEnumerable<AssetLabelData> GetFilteredActiveAssets(PinnedAssetData[] assets)
         {
-            if (assets == null)
-            {
-                return null;
-            }
-
-            if (string.IsNullOrEmpty(query))
-            {
-                return new AssetLabelData[0];
-            }
-
-            query = query.ToLower().Trim();
-
             List<AssetLabelData> filteredAssets = new List<AssetLabelData>();
             for (int i = 0; i < assets.Length; i++)
             {
                 PinnedAssetData data = assets[i];
-                Object asset = data.Asset;
-
-                string name = asset.name.ToLower();
-                string type = asset.GetType().Name.ToLower();
-
-                if (name.Contains(query) || type.Contains(query))
+                if (CanShowAsset(data.Asset))
                 {
-                    filteredAssets.Add(CreateLabel(data));
+                    var a = CreateLabel(data);
+                    filteredAssets.Add(a);
                 }
             }
             return filteredAssets;
