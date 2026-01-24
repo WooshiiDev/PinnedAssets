@@ -86,6 +86,7 @@ namespace PinnedAssets.Editors
         private void OnDisable()
         {
             PinnedAssetsManager.OnAfterProcess -= Refresh;
+            list?.Dispose();
         }
 
         protected override void OnHeaderGUI() { }
