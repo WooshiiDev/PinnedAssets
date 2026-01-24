@@ -1,7 +1,4 @@
-using System;
-using System.Drawing;
 using UnityEditor;
-using static Codice.Client.Commands.WkTree.WorkspaceTreeNode;
 
 namespace PinnedAssets
 {

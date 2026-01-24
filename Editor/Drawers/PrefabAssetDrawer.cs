@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 
 namespace PinnedAssets.Editors.Drawers
 {
