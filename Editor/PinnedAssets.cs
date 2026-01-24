@@ -1,7 +1,8 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using System;
+using Object = UnityEngine.Object;
 
 namespace PinnedAssets
 {
@@ -15,7 +16,6 @@ namespace PinnedAssets
 
         public event Action<PinnedProfileData> OnProfileChange;
         public event Action<string> OnFilterChange;
-        public event Action OnAssetsUpdated;
 
         // - Fields
 
@@ -25,7 +25,7 @@ namespace PinnedAssets
         };
 
         [SerializeField] private string activeProfileID = string.Empty;
-        [SerializeField] private string filter;
+        [SerializeField] private string filter = string.Empty;
 
         // - Properties
 
@@ -217,7 +217,7 @@ namespace PinnedAssets
             {
                 return;
             }
-            
+
             SetActiveProfile(GetProfile(index).ID);
         }
 
@@ -245,7 +245,7 @@ namespace PinnedAssets
 
             int index = GetProfileIndex(activeProfileID);
             DeleteProfile(activeProfileID);
-            SetActiveProfile(Mathf.Clamp(index, 0, index));
+            SetActiveProfile(Mathf.Clamp(index, 0, profiles.Count - 1));
         }
 
         /// <summary>
@@ -261,14 +261,40 @@ namespace PinnedAssets
         {
             if (string.IsNullOrWhiteSpace(ActiveProfileID) || GetProfileIndex(ActiveProfileID) == -1)
             {
-                activeProfileID = profiles[0].ID;
+                SetActiveProfile(profiles[0].ID);
             }
         }
+   
+        // - Assets
     
-        public void SwapActiveProfileAssets(int indexA, int indexB)
+        /// <summary>
+        /// Get a collection of assets from the <see cref="ActiveProfile"/> that can be displayed in respect to the <see cref="Filter"/>
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<PinnedAssetData> GetValidActiveAssets()
         {
-            ActiveProfile.Move(indexA, indexB);
-            OnAssetsUpdated?.Invoke();
+            foreach (PinnedAssetData asset in ActiveProfile.Assets)
+            {
+                if (CanShowAsset(asset.Asset))
+                {
+                    yield return asset;
+                }
+            }
         }
+
+        private bool CanShowAsset(Object asset)
+        {
+            if (asset == null)
+            {
+                return false;
+            }
+
+            string name = asset.name.ToLower();
+            string type = asset.GetType().Name.ToLower();
+            string query = Filter.ToLower().Trim();
+
+            return name.Contains(query) || type.Contains(query);
+        }
+
     }
 }

@@ -14,7 +14,7 @@ namespace PinnedAssets
     [Serializable]
     public class PinnedProfileData : IEquatable<PinnedProfileData>
     {
-        public event Action OnAssetMoved;
+        public static event Action OnAssetsChange;
 
         // - Fields
 
@@ -78,7 +78,6 @@ namespace PinnedAssets
             return assets.Find(a => a.ID.Equals(id));
         }
 
-
         /// <summary>
         /// Get an asset.
         /// </summary>
@@ -122,6 +121,8 @@ namespace PinnedAssets
             {
                 assets.Insert(index, data);
             }
+
+            OnAssetsChanged();
         }
 
         /// <summary>
@@ -160,6 +161,7 @@ namespace PinnedAssets
             }
 
             assets.RemoveAt(index);
+            OnAssetsChanged();
             return true;
         }
         
@@ -196,7 +198,7 @@ namespace PinnedAssets
             PinnedAssetData asset = assets[oldIndex];
             assets.RemoveAt(oldIndex);
             assets.Insert(newIndex, asset);
-
+            OnAssetsChanged();
             return true;
         }
 
@@ -254,6 +256,11 @@ namespace PinnedAssets
             }
 
             return -1;
+        }
+ 
+        private void OnAssetsChanged()
+        {
+            OnAssetsChange?.Invoke();
         }
     }
 }

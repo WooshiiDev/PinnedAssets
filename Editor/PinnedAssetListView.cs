@@ -85,15 +85,15 @@ namespace PinnedAssets.Editors
             controller.MoveAsset(oldIndex, newIndex);
         }
 
-        private IList GetProfileAssets()
-        {
-            return controller.ActiveAssets;
-        }
-
         private void UpdateList()
         {
             list.list = GetProfileAssets();
             list.draggable = !controller.HasFilter;
+        }
+
+        private IList GetProfileAssets()
+        {
+            return controller.ActiveAssets;
         }
     }
 }

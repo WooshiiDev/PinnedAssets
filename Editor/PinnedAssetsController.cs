@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Profiling;
 using Object = UnityEngine.Object;
 
 namespace PinnedAssets.Editors
@@ -27,13 +28,11 @@ namespace PinnedAssets.Editors
 
         private readonly PinnedAssetsData model;
 
-        private PinnedProfileData activeProfile;
         private List<AssetLabelData> activeAssets;
 
         public bool HasFilter {get; private set;}
+        private PinnedProfileData activeProfile => model.ActiveProfile;
         public AssetLabelData[] ActiveAssets => activeAssets.ToArray();
-        public int ActiveAssetCount => activeAssets.Count;
-        public string ActiveProfileID => model.ActiveProfileID;
 
         /// <summary>
         /// Create a controller instance.
@@ -42,16 +41,17 @@ namespace PinnedAssets.Editors
         public PinnedAssetsController(PinnedAssetsData data)
         {
             model = data;
+
             model.OnProfileChange += OnProfileChange;
             model.OnFilterChange += OnFilterChange;
-            model.OnAssetsUpdated += UpdateActiveAssets;
+            PinnedProfileData.OnAssetsChange += UpdateActiveAssets;
 
-            SetActiveProfile(model.ActiveProfileID);
+            UpdateActiveAssets();
         }
 
         public void Dispose()
         {
-            model.OnAssetsUpdated -= UpdateActiveAssets;
+            PinnedProfileData.OnAssetsChange -= UpdateActiveAssets;
             model.OnFilterChange -= OnFilterChange;
             model.OnProfileChange -= OnProfileChange;
         }
@@ -60,9 +60,8 @@ namespace PinnedAssets.Editors
 
         private void OnProfileChange(PinnedProfileData profile)
         {
-            activeProfile = profile;
-            OnProfileChanged?.Invoke();
             UpdateActiveAssets();
+            OnProfileChanged?.Invoke();
         }
 
         private void OnFilterChange(string filter)
@@ -99,10 +98,9 @@ namespace PinnedAssets.Editors
             SetActiveProfile_Internal(model.GetProfile(index));
         }
 
-        private void SetActiveProfile_Internal(PinnedProfileData data)
+        private void SetActiveProfile_Internal(PinnedProfileData profile)
         {
-            model.SetActiveProfile(data.ID);
-            activeProfile = data;
+            model.SetActiveProfile(profile.ID);
             SetFilter(string.Empty);
         }
         
@@ -156,7 +154,7 @@ namespace PinnedAssets.Editors
         /// <param name="newIndex">The new index.</param>
         public void MoveAsset(int oldIndex, int newIndex)
         {
-            model.SwapActiveProfileAssets(oldIndex, newIndex);
+            activeProfile.Move(oldIndex, newIndex);
             UpdateActiveAssets();
         }
 
@@ -171,26 +169,14 @@ namespace PinnedAssets.Editors
         private IEnumerable<AssetLabelData> GetFilteredActiveAssets()
         {
             List<AssetLabelData> filteredAssets = new List<AssetLabelData>();
-            foreach (PinnedAssetData data in activeProfile.Assets)
+            foreach (PinnedAssetData data in model.GetValidActiveAssets())
             {
-                if (CanShowAsset(data.Asset))
-                {
-                    filteredAssets.Add(CreateLabel(data));
-                }
+                filteredAssets.Add(CreateLabel(data));
             }
 
             return filteredAssets;
         }
-
-        private bool CanShowAsset(Object asset)
-        {
-            string name = asset.name.ToLower();
-            string type = asset.GetType().Name.ToLower();
-            string query = model.Filter.ToLower().Trim();
-
-            return name.Contains(query) || type.Contains(query);
-        }
-      
+  
         private AssetLabelData CreateLabel(PinnedAssetData data)
         {
             return new AssetLabelData(data.ID, data.Asset, GetAssetContent(data.Asset));
