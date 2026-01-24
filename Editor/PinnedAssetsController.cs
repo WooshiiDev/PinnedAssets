@@ -6,7 +6,7 @@ using Object = UnityEngine.Object;
 
 namespace PinnedAssets.Editors
 {
-    public struct AssetLabelData
+    public readonly struct AssetLabelData
     {
         public readonly string ID;
         public readonly GUIContent Content;
