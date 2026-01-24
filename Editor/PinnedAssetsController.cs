@@ -178,6 +178,15 @@ namespace PinnedAssets.Editors
             return ActiveProfile.GetAsset(assetId).Asset.GetType();
         }
 
+        private bool CanShowAsset(Object asset)
+        {
+            string name = asset.name.ToLower();
+            string type = asset.GetType().Name.ToLower();
+            string query = model.Filter.ToLower().Trim();
+
+            return name.Contains(query) || type.Contains(query);
+        }
+
         // - Helpers
 
         public void SelectActiveAssetFromReorderable(IReadOnlyList<int> indices)
