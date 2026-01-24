@@ -207,7 +207,7 @@ namespace PinnedAssets.Editors
 
         private GUIContent GetAssetContent(Object asset)
         {
-            GUIContent content = EditorGUIUtility.ObjectContent(asset, asset.GetType());
+            GUIContent content = new GUIContent(EditorGUIUtility.ObjectContent(asset, asset.GetType()));
             content.text = asset.name;
             content.tooltip = AssetDatabase.GetAssetPath(asset);
             return content;
