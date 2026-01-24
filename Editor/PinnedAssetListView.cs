@@ -1,10 +1,8 @@
+using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
-using UnityEngine.Analytics;
-using Object = UnityEngine.Object;
 
 namespace PinnedAssets.Editors
 {
@@ -42,7 +40,7 @@ namespace PinnedAssets.Editors
 
                 drawElementCallback = OnElementDraw,
                 onReorderCallbackWithDetails = OnElementReorder,
-                onSelectCallback = OnElementSelect
+                onSelectCallback = OnElementSelect,
             };
         }
 
@@ -79,81 +77,11 @@ namespace PinnedAssets.Editors
             controller.MoveAsset(oldIndex, newIndex);
         }
 
-        // - Rect setup
-
-        private Rect GetAssetLabelRect(Rect elementRect)
-        {
-            return elementRect;
-        }
-
-        private Rect GetSmallButtonRect(Rect elementRect)
-        {
-            elementRect.x += elementRect.width - 32f + 6f;
-            elementRect.width = 32f;
-            return elementRect;
-        }
-
         // - Helpers 
 
         private IList GetProfileAssets()
         {
             return controller.ActiveProfile.Assets;
-        }
-
-        private GUIContent GetAssetContent(Rect rect, Object asset)
-        {
-            GUIContent content = EditorGUIUtility.ObjectContent(asset, asset.GetType());
-            content.text = asset.name;
-            content.tooltip = AssetDatabase.GetAssetPath(asset);
-
-            return GetVisibleStringWidth(content, rect.width, Styles.ToolbarButton);
-        }
-
-        private GUIContent GetVisibleStringWidth(GUIContent content, float width, GUIStyle style)
-        {
-            if (string.IsNullOrEmpty(content.text))
-            {
-                return GUIContent.none;
-            }
-
-            // Get current length of content 
-
-            int textLength = content.text.Length;
-            int contentLen = GetIconContentVisibleLength(content, width, style);
-
-            // Return early if the string fits
-
-            if (contentLen == textLength)
-            {
-                return content;
-            }
-
-            if (contentLen >= 0)
-            {
-                content.text = content.text.Substring(0, contentLen);
-            }
-
-            return content;
-        }
-
-        private int GetIconContentVisibleLength(GUIContent content, float width, GUIStyle style)
-        {
-            // Calculate the length difference between the width given and the style size of the content
-
-            int len = content.text.Length;
-
-            if (len == 0)
-            {
-                return 0;
-            }
-
-            float ratio = GetGUIContentVisibleRatio(content, width, style);
-            return Mathf.Min(Mathf.FloorToInt(ratio * len), len);
-        }
-
-        private float GetGUIContentVisibleRatio(GUIContent content, float width, GUIStyle style)
-        {
-            return width / style.CalcSize(content).x;
         }
     }
 }
