@@ -22,8 +22,8 @@ namespace PinnedAssets.Editors
 
     public class PinnedAssetsController
     {
-        public Action OnProfileChanged;
-        public Action OnAssetsChanged;
+        public event Action OnProfileChanged;
+        public event Action OnAssetsChanged;
 
         private readonly PinnedAssetsData model;
 
@@ -38,7 +38,12 @@ namespace PinnedAssets.Editors
             SetActiveProfile(model.ActiveProfileID);
         }
 
-        // - Profiles
+        // - Profile
+
+        public void CreateNewProfile()
+        {
+            SetActiveProfile_Internal(model.CreateProfile());
+        }
 
         public void SetActiveProfile(string id)
         {
@@ -58,21 +63,7 @@ namespace PinnedAssets.Editors
             OnProfileChanged?.Invoke();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public PinnedProfileData GetActiveProfile()
-        {
-            return GetProfile(model.ActiveProfileID);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public PinnedProfileData GetProfile(string id)
+        private PinnedProfileData GetProfile(string id)
         {
             return model.GetProfileByID(id);
         }
@@ -86,17 +77,6 @@ namespace PinnedAssets.Editors
         }
 
         /// <summary>
-        /// Add an asset to this list.
-        /// </summary>
-        /// <param name="asset">The asset to add.</param>
-        public void AddActiveAsset(Object asset, int index = -1)
-        {
-            GetActiveProfile()
-                .AddAsset(asset, index);
-            UpdateAssetList();
-        }
-
-        /// <summary>
         /// Add a range of assets to this list.
         /// </summary>
         /// <param name="assets">The assets to add.</param>
@@ -105,13 +85,14 @@ namespace PinnedAssets.Editors
         {
             foreach (Object asset in assets)
             {
-                AddActiveAsset(asset, startIndex);
+                ActiveProfile.AddAsset(asset, startIndex);
 
                 if (startIndex > -1)
                 {
                     startIndex++;
                 }
             }
+            UpdateAssetList();
         }
 
         /// <summary>
@@ -123,9 +104,7 @@ namespace PinnedAssets.Editors
         /// <param name="index">The index of the asset to remove.</param>
         public void RemoveActiveAsset(string id)
         {
-            GetActiveProfile()
-                .RemoveAsset(id);
-
+            ActiveProfile.RemoveAsset(id);
             UpdateAssetList();
         }
 
@@ -143,11 +122,6 @@ namespace PinnedAssets.Editors
 
         // - GUI Info
 
-        public AssetLabelData GetActiveAsset(string id)
-        {
-            return CreateLabel(ActiveProfile.GetAsset(id));
-        }
-        
         public AssetLabelData GetActiveAsset(int index)
         {
             return DisplayedAssets[index];
@@ -155,32 +129,16 @@ namespace PinnedAssets.Editors
 
         private IEnumerable<AssetLabelData> GetFilteredActiveAssets()
         {
-            return GetFilteredActiveAssets(ActiveProfile.Assets);
-        }
-
-        private IEnumerable<AssetLabelData> GetFilteredActiveAssets(PinnedAssetData[] assets)
-        {
             List<AssetLabelData> filteredAssets = new List<AssetLabelData>();
-            for (int i = 0; i < assets.Length; i++)
+            foreach (PinnedAssetData data in ActiveProfile.Assets)
             {
-                PinnedAssetData data = assets[i];
                 if (CanShowAsset(data.Asset))
                 {
-                    var a = CreateLabel(data);
-                    filteredAssets.Add(a);
+                    filteredAssets.Add(CreateLabel(data));
                 }
             }
+
             return filteredAssets;
-        }
-
-        public Type GetActiveAssetType(int index)
-        {
-            return GetActiveAsset(index).Asset.GetType();
-        }
-
-        public Type GetActiveAssetType(string assetId)
-        {
-            return ActiveProfile.GetAsset(assetId).Asset.GetType();
         }
 
         private bool CanShowAsset(Object asset)
@@ -191,20 +149,8 @@ namespace PinnedAssets.Editors
 
             return name.Contains(query) || type.Contains(query);
         }
-
-        // - Helpers
-
-        public void SelectActiveAssetFromReorderable(IReadOnlyList<int> indices)
-        {
-            Object[] selectedObjects = new Object[indices.Count];
-            for (int i = 0; i < indices.Count; i++)
-            {
-                selectedObjects[i] = ActiveProfile.GetAsset(indices[i]).Asset;
-            }
-            Selection.objects = selectedObjects;
-        }
-
-        public AssetLabelData CreateLabel(PinnedAssetData data)
+      
+        private AssetLabelData CreateLabel(PinnedAssetData data)
         {
             return new AssetLabelData(data.ID, data.Asset, GetAssetContent(data.Asset));
         }
@@ -215,6 +161,18 @@ namespace PinnedAssets.Editors
             content.text = asset.name;
             content.tooltip = AssetDatabase.GetAssetPath(asset);
             return content;
+        }
+
+        // - Helpers
+
+        public void SelectActiveAssetsFromReorderable(IReadOnlyList<int> indices)
+        {
+            Object[] selectedObjects = new Object[indices.Count];
+            for (int i = 0; i < indices.Count; i++)
+            {
+                selectedObjects[i] = ActiveProfile.GetAsset(indices[i]).Asset;
+            }
+            Selection.objects = selectedObjects;
         }
     }
 }

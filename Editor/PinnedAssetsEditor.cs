@@ -133,8 +133,7 @@ namespace PinnedAssets.Editors
             {
                 if (GUILayout.Button(Icons.Create, EditorStyles.toolbarButton, GUILayout.Width(32f)))
                 {
-                    PinnedProfileData profile = Target.CreateProfile();
-                    SetProfile(profile.ID);
+                    controller.CreateNewProfile();
                 }
 
                 EditorGUI.BeginChangeCheck();

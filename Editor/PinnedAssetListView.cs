@@ -11,10 +11,10 @@ namespace PinnedAssets.Editors
     /// </summary>
     public sealed class PinnedAssetListView : IDisposable
     {
-        private PinnedAssetsController controller;
+        private readonly PinnedAssetsController controller;
 
-        private SerializedObject serializedObject;
-        private ReorderableList list;
+        private readonly SerializedObject serializedObject;
+        private readonly ReorderableList list;
 
         /// <summary>
         /// Create a new instance of a list view.
@@ -30,6 +30,7 @@ namespace PinnedAssets.Editors
             {
                 displayAdd = false,
                 displayRemove = false,
+                draggable = !controller.HasFilter,
 
                 showDefaultBackground = false,
 
@@ -55,7 +56,6 @@ namespace PinnedAssets.Editors
 
         public void Draw()
         {
-            list.draggable = !controller.HasFilter;
             list.DoLayoutList();
         }
 
@@ -76,15 +76,13 @@ namespace PinnedAssets.Editors
 
         private void OnElementSelect(ReorderableList list)
         {
-            controller.SelectActiveAssetFromReorderable(list.selectedIndices);
+            controller.SelectActiveAssetsFromReorderable(list.selectedIndices);
         }
 
         private void OnElementReorder(ReorderableList list, int oldIndex, int newIndex)
         {
             controller.MoveAsset(oldIndex, newIndex);
         }
-
-        // - Helpers 
 
         private IList GetProfileAssets()
         {
@@ -94,6 +92,7 @@ namespace PinnedAssets.Editors
         private void UpdateList()
         {
             list.list = GetProfileAssets();
+            list.draggable = !controller.HasFilter;
         }
     }
 }
