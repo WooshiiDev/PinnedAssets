@@ -13,6 +13,10 @@ namespace PinnedAssets
     {
         private const string DEFAULT_PROFILE_NAME = "New Profile";
 
+        public event Action<PinnedProfileData> OnProfileChange;
+        public event Action<string> OnFilterChange;
+        public event Action OnAssetsUpdated;
+
         // - Fields
 
         [SerializeField] private List<PinnedProfileData> profiles = new List<PinnedProfileData>()
@@ -71,7 +75,11 @@ namespace PinnedAssets
         public string Filter
         {
             get => filter;
-            set => filter = value;
+            set
+            {
+                filter = value;
+                OnFilterChange?.Invoke(value);
+            }
         }
 
         // - Profiles
@@ -221,6 +229,7 @@ namespace PinnedAssets
         {
             activeProfileID = ID;
             ValidateActiveProfile();
+            OnProfileChange?.Invoke(ActiveProfile);
         }
 
         /// <summary>
@@ -254,6 +263,12 @@ namespace PinnedAssets
             {
                 activeProfileID = profiles[0].ID;
             }
+        }
+    
+        public void SwapActiveProfileAssets(int indexA, int indexB)
+        {
+            ActiveProfile.Move(indexA, indexB);
+            OnAssetsUpdated?.Invoke();
         }
     }
 }

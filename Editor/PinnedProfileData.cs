@@ -14,6 +14,8 @@ namespace PinnedAssets
     [Serializable]
     public class PinnedProfileData : IEquatable<PinnedProfileData>
     {
+        public event Action OnAssetMoved;
+
         // - Fields
 
         [SerializeField] private string id;

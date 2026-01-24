@@ -20,20 +20,20 @@ namespace PinnedAssets.Editors
         }
     }
 
-    public class PinnedAssetsController
+    public class PinnedAssetsController : IDisposable
     {
         public event Action OnProfileChanged;
         public event Action OnAssetsChanged;
 
         private readonly PinnedAssetsData model;
 
-        private PinnedProfileData ActiveProfile;
+        private PinnedProfileData activeProfile;
         private List<AssetLabelData> activeAssets;
 
+        public bool HasFilter {get; private set;}
         public AssetLabelData[] ActiveAssets => activeAssets.ToArray();
         public int ActiveAssetCount => activeAssets.Count;
         public string ActiveProfileID => model.ActiveProfileID;
-        public bool HasFilter => !string.IsNullOrEmpty(model.Filter);
 
         /// <summary>
         /// Create a controller instance.
@@ -42,7 +42,33 @@ namespace PinnedAssets.Editors
         public PinnedAssetsController(PinnedAssetsData data)
         {
             model = data;
+            model.OnProfileChange += OnProfileChange;
+            model.OnFilterChange += OnFilterChange;
+            model.OnAssetsUpdated += UpdateActiveAssets;
+
             SetActiveProfile(model.ActiveProfileID);
+        }
+
+        public void Dispose()
+        {
+            model.OnAssetsUpdated -= UpdateActiveAssets;
+            model.OnFilterChange -= OnFilterChange;
+            model.OnProfileChange -= OnProfileChange;
+        }
+
+        // - Events
+
+        private void OnProfileChange(PinnedProfileData profile)
+        {
+            activeProfile = profile;
+            OnProfileChanged?.Invoke();
+            UpdateActiveAssets();
+        }
+
+        private void OnFilterChange(string filter)
+        {
+            HasFilter = !string.IsNullOrEmpty(filter);
+            UpdateActiveAssets();
         }
 
         // - Profile
@@ -76,9 +102,8 @@ namespace PinnedAssets.Editors
         private void SetActiveProfile_Internal(PinnedProfileData data)
         {
             model.SetActiveProfile(data.ID);
-            ActiveProfile = data;
+            activeProfile = data;
             SetFilter(string.Empty);
-            OnProfileChanged?.Invoke();
         }
         
         // - Assets
@@ -90,7 +115,6 @@ namespace PinnedAssets.Editors
         public void SetFilter(string filter)
         {
             model.Filter = filter;
-            UpdateAssetList();
         }
 
         /// <summary>
@@ -102,14 +126,14 @@ namespace PinnedAssets.Editors
         {
             foreach (Object asset in assets)
             {
-                ActiveProfile.AddAsset(asset, startIndex);
+                activeProfile.AddAsset(asset, startIndex);
 
                 if (startIndex > -1)
                 {
                     startIndex++;
                 }
             }
-            UpdateAssetList();
+            UpdateActiveAssets();
         }
 
         /// <summary>
@@ -121,8 +145,8 @@ namespace PinnedAssets.Editors
         /// <param name="index">The index of the asset to remove.</param>
         public void RemoveActiveAsset(string id)
         {
-            ActiveProfile.RemoveAsset(id);
-            UpdateAssetList();
+            activeProfile.RemoveAsset(id);
+            UpdateActiveAssets();
         }
 
         /// <summary>
@@ -132,11 +156,11 @@ namespace PinnedAssets.Editors
         /// <param name="newIndex">The new index.</param>
         public void MoveAsset(int oldIndex, int newIndex)
         {
-            ActiveProfile.Move(oldIndex, newIndex);
-            UpdateAssetList();
+            model.SwapActiveProfileAssets(oldIndex, newIndex);
+            UpdateActiveAssets();
         }
 
-        private void UpdateAssetList()
+        private void UpdateActiveAssets()
         {
             activeAssets = new List<AssetLabelData>(GetFilteredActiveAssets());
             OnAssetsChanged?.Invoke();
@@ -147,7 +171,7 @@ namespace PinnedAssets.Editors
         private IEnumerable<AssetLabelData> GetFilteredActiveAssets()
         {
             List<AssetLabelData> filteredAssets = new List<AssetLabelData>();
-            foreach (PinnedAssetData data in ActiveProfile.Assets)
+            foreach (PinnedAssetData data in activeProfile.Assets)
             {
                 if (CanShowAsset(data.Asset))
                 {
@@ -187,7 +211,7 @@ namespace PinnedAssets.Editors
             Object[] selectedObjects = new Object[indices.Count];
             for (int i = 0; i < indices.Count; i++)
             {
-                selectedObjects[i] = ActiveProfile.GetAsset(indices[i]).Asset;
+                selectedObjects[i] = activeProfile.GetAsset(indices[i]).Asset;
             }
             Selection.objects = selectedObjects;
         }
