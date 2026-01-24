@@ -1,35 +1,36 @@
-using System.Collections.Generic;
+using System;
+using System.Collections;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace PinnedAssets.Editors
 {
     /// <summary>
     /// Class that handles the GUI view for <see cref="PinnedAssetListData"/>.
     /// </summary>
-    public sealed class PinnedAssetListView
+    public sealed class PinnedAssetListView : IDisposable
     {
-        private PinnedAssetListData data;
+        private readonly PinnedAssetsController controller;
 
-        private SerializedObject serializedObject;
-        private ReorderableList list;
+        private readonly SerializedObject serializedObject;
+        private readonly ReorderableList list;
 
         /// <summary>
         /// Create a new instance of a list view.
         /// </summary>
         /// <param name="data">The data the list uses.</param>
         /// <param name="serializedObject">The serialized object this list requires.</param>
-        public PinnedAssetListView(PinnedAssetListData data, SerializedObject serializedObject)
+        public PinnedAssetListView(PinnedAssetsController data, SerializedObject serializedObject)
         {
-            this.data = data;
+            this.controller = data;
             this.serializedObject = serializedObject;
 
-            list = new ReorderableList(serializedObject, GetProfileAssets())
+            list = new ReorderableList(GetProfileAssets(), typeof(PinnedAssetData))
             {
                 displayAdd = false,
                 displayRemove = false,
+                draggable = !controller.HasFilter,
 
                 showDefaultBackground = false,
 
@@ -40,136 +41,58 @@ namespace PinnedAssets.Editors
 
                 drawElementCallback = OnElementDraw,
                 onReorderCallbackWithDetails = OnElementReorder,
-                onSelectCallback = OnElementSelect
+                onSelectCallback = OnElementSelect,
             };
+
+            controller.OnAssetsChanged += UpdateList;
+        }
+
+        public void Dispose()
+        {
+            controller.OnAssetsChanged -= UpdateList;
         }
 
         // - Reorderable List GUI
 
         public void Draw()
         {
-            list.draggable = !data.HasValidFilter;
             list.DoLayoutList();
         }
 
         private void OnElementDraw(Rect rect, int index, bool active, bool focused)
         {
-            if (rect.height == 0 || index < 0 || index >= data.DisplayedAssets.Length)
+            if (index >= controller.ActiveAssets.Length)
             {
                 return;
             }
 
-            PinnedAssetData assetData = data.DisplayedAssets[index];
+            AssetLabelData label = controller.ActiveAssets[index];
+            Type assetType = label.Asset.GetType();
 
-            if (assetData.Asset == null)
-            {
-                data.RefreshAssets();
-                Selection.objects = null;
-                return;
-            }
-
-            Object asset = assetData.Asset;
             PinnedAssetsDrawerCache
-                .Get(asset)
-                .OnGUI(rect, asset, data, serializedObject);
+                .Get(assetType)
+                .OnGUI(rect, label, controller, serializedObject);
         }
 
         private void OnElementSelect(ReorderableList list)
         {
-            var indices = list.selectedIndices;
-
-            Object[] selectedObjects = new Object[indices.Count];
-            for (int i = 0; i < indices.Count; i++)
-            {
-                selectedObjects[i] = data.Profile.Assets[indices[i]].Asset;
-            }
-
-            Selection.objects = selectedObjects;
+            controller.SelectActiveAssetsFromReorderable(list.selectedIndices);
         }
 
-        private void OnElementReorder(ReorderableList list, int a, int b)
+        private void OnElementReorder(ReorderableList list, int oldIndex, int newIndex)
         {
-            data.Profile.Move(a, b);
-            data.RefreshAssets();
+            controller.MoveAsset(oldIndex, newIndex);
         }
 
-        // - Rect setup
-
-        private Rect GetAssetLabelRect(Rect elementRect)
+        private void UpdateList()
         {
-            return elementRect;
+            list.list = GetProfileAssets();
+            list.draggable = !controller.HasFilter;
         }
 
-        private Rect GetSmallButtonRect(Rect elementRect)
+        private IList GetProfileAssets()
         {
-            elementRect.x += elementRect.width - 32f + 6f;
-            elementRect.width = 32f;
-            return elementRect;
-        }
-
-        // - Helpers 
-
-        private SerializedProperty GetProfileAssets()
-        {
-            return serializedObject
-                .FindProperty("display")
-                .FindPropertyRelative("assets");
-        }
-
-        private GUIContent GetAssetContent(Rect rect, Object asset)
-        {
-            GUIContent content = EditorGUIUtility.ObjectContent(asset, asset.GetType());
-            content.text = asset.name;
-            content.tooltip = AssetDatabase.GetAssetPath(asset);
-
-            return GetVisibleStringWidth(content, rect.width, Styles.ToolbarButton);
-        }
-
-        private GUIContent GetVisibleStringWidth(GUIContent content, float width, GUIStyle style)
-        {
-            if (string.IsNullOrEmpty(content.text))
-            {
-                return GUIContent.none;
-            }
-
-            // Get current length of content 
-
-            int textLength = content.text.Length;
-            int contentLen = GetIconContentVisibleLength(content, width, style);
-
-            // Return early if the string fits
-
-            if (contentLen == textLength)
-            {
-                return content;
-            }
-
-            if (contentLen >= 0)
-            {
-                content.text = content.text.Substring(0, contentLen);
-            }
-
-            return content;
-        }
-
-        private int GetIconContentVisibleLength(GUIContent content, float width, GUIStyle style)
-        {
-            // Calculate the length difference between the width given and the style size of the content
-
-            int len = content.text.Length;
-
-            if (len == 0)
-            {
-                return 0;
-            }
-
-            float ratio = GetGUIContentVisibleRatio(content, width, style);
-            return Mathf.Min(Mathf.FloorToInt(ratio * len), len);
-        }
-
-        private float GetGUIContentVisibleRatio(GUIContent content, float width, GUIStyle style)
-        {
-            return width / style.CalcSize(content).x;
+            return controller.ActiveAssets;
         }
     }
 }
