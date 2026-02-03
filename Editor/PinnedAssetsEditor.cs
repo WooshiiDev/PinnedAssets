@@ -58,6 +58,8 @@ namespace PinnedAssets.Editors
         private PinnedAssetsController controller;
         private PinnedAssetListView list;
 
+        private SerializedProperty sidebarProperty;
+
         // - Properties
 
         private PinnedAssetsData Target => target as PinnedAssetsData;
@@ -81,6 +83,7 @@ namespace PinnedAssets.Editors
             PinnedAssetsManager.OnAfterProcess += Refresh;
 
             controller = new PinnedAssetsController(Target);
+            sidebarProperty = serializedObject.FindProperty("showSidebar");
         }
 
         private void OnDisable()
@@ -106,11 +109,29 @@ namespace PinnedAssets.Editors
 
         public override void OnInspectorGUI()
         {
-            Rect rect = EditorGUILayout.BeginVertical(Styles.BoxContainer);
+            Rect rect = EditorGUILayout.BeginVertical(Styles.BoxContainer, GUILayout.Height(21f));
             {
-                DrawContentHeader();
-                DrawAssets();
-                DrawContentFooter();
+                EditorGUILayout.BeginVertical(Styles.Toolbar);
+                EditorGUILayout.LabelField("Pinned Assets", Styles.Title);
+                EditorGUILayout.EndVertical();
+
+                EditorGUILayout.BeginHorizontal(Styles.Toolbar, GUILayout.Height(21f));
+                {
+                    DrawCreateProfileButton();
+                    DrawSidebarButton();
+                    DrawProfileDropdown();
+                    DrawProfileLabel();
+                    DrawSearchbar();
+                    DrawDeleteProfileButton();
+                }
+                EditorGUILayout.EndHorizontal();
+
+                EditorGUILayout.BeginHorizontal();
+                DrawProfileSidebar();
+                DrawProfileList();
+                EditorGUILayout.EndHorizontal();
+
+                DrawFooter();
             }
             EditorGUILayout.EndVertical();
 
@@ -122,63 +143,19 @@ namespace PinnedAssets.Editors
                 Handles.DrawSolidRectangleWithOutline(rect, Color.clear, Color.grey);
                 Handles.EndGUI();
             }
+            Repaint();
         }
 
-        private void DrawContentHeader()
+        private void DrawFooter()
         {
-            EditorGUILayout.BeginVertical(Styles.Toolbar);
-                EditorGUILayout.LabelField("Current Profile", Styles.Title);
-            EditorGUILayout.EndVertical();
-
-            EditorGUILayout.BeginHorizontal(Styles.Toolbar);
-            {
-                if (GUILayout.Button(Icons.Create, EditorStyles.toolbarButton, GUILayout.Width(32f)))
-                {
-                    controller.CreateNewProfile();
-                }
-
-                EditorGUI.BeginChangeCheck();
-                int index = EditorGUILayout.Popup(Target.ActiveProfileIndex, GetProfileNames(), Styles.ToolbarDropdownImage, GUILayout.Width(32f));
-                if (EditorGUI.EndChangeCheck())
-                {
-                    SetProfile(index);
-                }
-
-                EditorGUI.BeginChangeCheck();
-                string name = EditorGUILayout.DelayedTextField(Target.ActiveProfile.Name, EditorStyles.label);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    Target.RenameActiveProfile(name);
-                }
-
-                EditorGUI.BeginChangeCheck();
-                search = EditorGUILayout.TextField(search, EditorStyles.toolbarSearchField);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    controller.SetFilter(search);
-                }
-
-                EditorGUI.BeginDisabledGroup(Target.Profiles.Length == 1);
-                if (GUILayout.Button(Icons.Trash, EditorStyles.toolbarButton, GUILayout.Width(32f)))
-                {
-                    if (EditorUtility.DisplayDialog("Remove Profile", $"Would you like to delete {Target.ActiveProfile.Name}?", "Yes", "No"))
-                    {
-                        Target.DeleteActiveProfile();
-                    }
-                }
-                EditorGUI.EndDisabledGroup();
-            }
-            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.LabelField("Drag and drop assets to add", EditorStyles.centeredGreyMiniLabel);
         }
-
-        private void DrawContentFooter()
+    
+        private void DrawProfileList()
         {
-            EditorGUILayout.LabelField("Drag asset into area to add", EditorStyles.centeredGreyMiniLabel);
-        }
-
-        private void DrawAssets()
-        {
+            listRect = EditorGUILayout.BeginVertical();
             List.Draw();
+            EditorGUILayout.EndVertical();
         }
 
         private void HandleEvents(Rect rect, Event evt)
@@ -219,6 +196,96 @@ namespace PinnedAssets.Editors
         {
             Target.SetActiveProfile(index);
             controller.SetActiveProfile(index);
+        }
+
+        // - Elements
+
+        private void DrawProfileLabel()
+        {
+            EditorGUI.BeginChangeCheck();
+            string name = EditorGUILayout.DelayedTextField(Target.ActiveProfile.Name, EditorStyles.label);
+            if (EditorGUI.EndChangeCheck())
+            {
+                Target.RenameActiveProfile(name);
+            }
+        }
+
+        private void DrawCreateProfileButton()
+        {
+            if (DrawToolbarButton(Icons.Create))
+            {
+                controller.CreateNewProfile();
+            }
+        }
+
+        private void DrawDeleteProfileButton()
+        {
+            EditorGUI.BeginDisabledGroup(Target.Profiles.Length == 1);
+            if (DrawToolbarButton(Icons.Trash))
+            {
+                if (EditorUtility.DisplayDialog("Remove Profile", $"Would you like to delete {Target.ActiveProfile.Name}?", "Yes", "No"))
+                {
+                    Target.DeleteActiveProfile();
+                }
+            }
+            EditorGUI.EndDisabledGroup();
+        }
+
+        private void DrawSidebarButton()
+        {
+            EditorGUI.BeginChangeCheck();
+            bool value = GUILayout.Toggle(sidebarProperty.boolValue, Icons.ShowProfileSidebar, Styles.ToolbarButton, GUILayout.Width(32f), GUILayout.Height(20f));
+            if (EditorGUI.EndChangeCheck())
+            {
+                serializedObject.Update();
+                sidebarProperty.boolValue = value;
+                serializedObject.ApplyModifiedProperties();
+            }
+        }
+
+        private void DrawProfileDropdown()
+        {
+            EditorGUI.BeginChangeCheck();
+            int index = EditorGUILayout.Popup(Target.ActiveProfileIndex, GetProfileNames(), Styles.ToolbarDropdownImage, GUILayout.Width(32f));
+            if (EditorGUI.EndChangeCheck())
+                SetProfile(index);
+            }
+        }
+
+        private void DrawProfileSidebar()
+        {
+            if (!Target.ShowSidebar)
+            {
+                return;
+            }
+
+            Rect r = EditorGUILayout.BeginHorizontal(Styles.BoxContainer);
+            {
+                EditorGUI.BeginChangeCheck();
+                string[] names = GetProfileNames();
+                int index = GUILayout.SelectionGrid(Target.ActiveProfileIndex, names, 1, Styles.ToolbarGrid, GUILayout.Width(s), GUILayout.Height(20f * names.Length));
+                if (EditorGUI.EndChangeCheck())
+                {
+                    SetProfile(index);
+                }
+                GUILayout.Space(4f);
+            }
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private void DrawSearchbar()
+        {
+            EditorGUI.BeginChangeCheck();
+            search = EditorGUILayout.TextField(search, EditorStyles.toolbarSearchField);
+            if (EditorGUI.EndChangeCheck())
+            {
+                controller.SetFilter(search);
+            }
+        }
+
+        private bool DrawToolbarButton(GUIContent content)
+        {
+            return GUILayout.Button(content, Styles.ToolbarButton, GUILayout.Width(32f), GUILayout.Height(20f));
         }
 
         // - Utils
