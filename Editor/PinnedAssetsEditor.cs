@@ -59,6 +59,7 @@ namespace PinnedAssets.Editors
         private PinnedAssetListView list;
 
         private SerializedProperty sidebarProperty;
+        private Rect sidebarRect;
 
         // - Properties
 
