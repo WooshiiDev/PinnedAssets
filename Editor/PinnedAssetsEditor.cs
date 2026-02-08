@@ -259,18 +259,19 @@ namespace PinnedAssets.Editors
                 return;
             }
 
-            Rect r = EditorGUILayout.BeginHorizontal(Styles.BoxContainer);
+            // Update the profile when a profile has been switched
+
+            EditorGUI.BeginChangeCheck();
+            GUIContent[] names = GetProfileNames();
+            int index = GUILayout.SelectionGrid(Target.ActiveProfileIndex, names, 1, Styles.ToolbarGrid, GUILayout.Width(96f), GUILayout.MinHeight(20f * names.Length));
+            if (EditorGUI.EndChangeCheck())
             {
-                EditorGUI.BeginChangeCheck();
-                string[] names = GetProfileNames();
-                int index = GUILayout.SelectionGrid(Target.ActiveProfileIndex, names, 1, Styles.ToolbarGrid, GUILayout.Width(s), GUILayout.Height(20f * names.Length));
-                if (EditorGUI.EndChangeCheck())
-                {
-                    SetProfile(index);
-                }
-                GUILayout.Space(4f);
+                SetProfile(index);
             }
-            EditorGUILayout.EndHorizontal();
+
+            // Get the rect of the sidebar to handle events
+
+            sidebarRect = GUILayoutUtility.GetLastRect(); 
         }
 
         private void DrawSearchbar()
@@ -290,13 +291,14 @@ namespace PinnedAssets.Editors
 
         // - Utils
 
-        private string[] GetProfileNames()
+        private GUIContent[] GetProfileNames()
         {
-            List<string> names = new List<string>();
+            List<GUIContent> names = new List<GUIContent>();
             
             for (int i = 0; i < Target.Profiles.Length; i++)
             {
-                names.Add(Target.Profiles[i].Name);
+                string name = Target.GetProfile(i).Name;
+                names.Add(new GUIContent(name, name));
             }
 
             return names.ToArray();
