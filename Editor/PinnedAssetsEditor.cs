@@ -51,15 +51,25 @@ namespace PinnedAssets.Editors
     [CustomEditor(typeof(PinnedAssetsData))]
     public class PinnedAssetsEditor : Editor
     {
+        private const float DEFAULT_SIDEBAR_WIDTH = 96f;
+
         // - Fields
 
         private string search = string.Empty;
         private bool performDrag;
+        private bool performResize;
         private PinnedAssetsController controller;
         private PinnedAssetListView list;
 
         private SerializedProperty sidebarProperty;
+
+        private Rect listRect;
         private Rect sidebarRect;
+        private Rect highlightRect;
+
+        private float size = DEFAULT_SIDEBAR_WIDTH;
+
+        private int sidebarID;
 
         // - Properties
 
@@ -85,6 +95,7 @@ namespace PinnedAssets.Editors
 
             controller = new PinnedAssetsController(Target);
             sidebarProperty = serializedObject.FindProperty("showSidebar");
+            sidebarID = GUIUtility.GetControlID(FocusType.Passive);
         }
 
         private void OnDisable()
@@ -110,7 +121,7 @@ namespace PinnedAssets.Editors
 
         public override void OnInspectorGUI()
         {
-            Rect rect = EditorGUILayout.BeginVertical(Styles.BoxContainer, GUILayout.Height(21f));
+            EditorGUILayout.BeginVertical(Styles.BoxContainer, GUILayout.Height(21f));
             {
                 EditorGUILayout.BeginVertical(Styles.Toolbar);
                 EditorGUILayout.LabelField("Pinned Assets", Styles.Title);
@@ -136,15 +147,14 @@ namespace PinnedAssets.Editors
             }
             EditorGUILayout.EndVertical();
 
-            HandleEvents(rect, Event.current);
+            highlightRect = listRect;
+            highlightRect.height = Mathf.Max(highlightRect.height, sidebarRect.height);
 
-            if (performDrag)
-            {
-                Handles.BeginGUI();
-                Handles.DrawSolidRectangleWithOutline(rect, Color.clear, Color.grey);
-                Handles.EndGUI();
-            }
+            HandleEvents(Event.current);
+
+           
             Repaint();
+
         }
 
         private void DrawFooter()
@@ -154,43 +164,92 @@ namespace PinnedAssets.Editors
     
         private void DrawProfileList()
         {
-            listRect = EditorGUILayout.BeginVertical();
             List.Draw();
-            EditorGUILayout.EndVertical();
+            listRect = GUILayoutUtility.GetLastRect();
         }
 
-        private void HandleEvents(Rect rect, Event evt)
+        private void HandleEvents(Event evt)
         {
+            HandleAssetDrop(highlightRect, evt);
+            HandleSidebarResize(sidebarRect, evt);
+
+            if (performDrag)
+            {
+                Handles.BeginGUI();
+                Handles.DrawSolidRectangleWithOutline(highlightRect, Color.clear, Color.grey);
+                Handles.EndGUI();
+            }
+        }
+
+        private void HandleAssetDrop(Rect rect, Event evt)
+        {
+            bool contained = rect.Contains(evt.mousePosition);
+
             switch (evt.type)
             {
-                case EventType.DragPerform:
-                case EventType.DragUpdated:
+                case EventType.DragUpdated when contained:
 
-                    if (!rect.Contains(evt.mousePosition))
+                    if (!performDrag)
                     {
-                        return;
+                        performDrag = rect.Contains(evt.mousePosition);
+                        DragAndDrop.objectReferences = Selection.objects;
                     }
-
-                    performDrag = true;
-
-                    // Copy over
-
-                    DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
-
-                    if (evt.type == EventType.DragPerform)
+                    else
                     {
-                        DragAndDrop.AcceptDrag();
-                        controller.AddActiveAssets(DragAndDrop.objectReferences);
-                        performDrag = false;
+                        DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
                     }
+                    break;
 
+                case EventType.DragPerform when contained:
+                    DragAndDrop.AcceptDrag();
+                    controller.AddActiveAssets(DragAndDrop.objectReferences);
+                    performDrag = false;
                     break;
 
                 case EventType.DragExited:
                     performDrag = false;
                     break;
+            }
 
-            } 
+        }
+
+        private void HandleSidebarResize(Rect rect, Event evt)
+        {
+            Rect resizeRect = new Rect(rect);
+            resizeRect.xMin = resizeRect.xMax - 3f;
+            resizeRect.width = 3f;
+
+            bool contained = resizeRect.Contains(evt.mousePosition);
+            switch (evt.GetTypeForControl(sidebarID))
+            {
+                case EventType.MouseDown when contained:
+                    GUIUtility.hotControl = sidebarID;
+                    performResize = true;
+
+                    if (evt.clickCount == 2)
+                    {
+                        size = DEFAULT_SIDEBAR_WIDTH;
+                    }
+                    break;
+
+                case EventType.MouseDrag when performResize:
+                    size = Mathf.Clamp(size + evt.delta.x, 48f, sidebarRect.width + listRect.width);
+                    break;
+
+                case EventType.MouseUp:
+                    performResize = false;
+                    GUIUtility.hotControl = 0;
+                    break;
+            }
+
+            if (contained || GUIUtility.hotControl == sidebarID)
+            {
+                Rect r = sidebarRect;
+                r.xMax = listRect.xMax;
+
+                EditorGUIUtility.AddCursorRect(r, MouseCursor.ResizeHorizontal);
+                EditorGUI.DrawRect(resizeRect, Color.lightSkyBlue);
+            }
         }
 
         private void SetProfile(int index)
@@ -249,6 +308,7 @@ namespace PinnedAssets.Editors
             EditorGUI.BeginChangeCheck();
             int index = EditorGUILayout.Popup(Target.ActiveProfileIndex, GetProfileNames(), Styles.ToolbarDropdownImage, GUILayout.Width(32f));
             if (EditorGUI.EndChangeCheck())
+            {
                 SetProfile(index);
             }
         }
@@ -262,13 +322,16 @@ namespace PinnedAssets.Editors
 
             // Update the profile when a profile has been switched
 
+            EditorGUILayout.BeginHorizontal(GUILayout.Width(size));
             EditorGUI.BeginChangeCheck();
             GUIContent[] names = GetProfileNames();
-            int index = GUILayout.SelectionGrid(Target.ActiveProfileIndex, names, 1, Styles.ToolbarGrid, GUILayout.Width(96f), GUILayout.MinHeight(20f * names.Length));
+            int index = GUILayout.SelectionGrid(Target.ActiveProfileIndex, names, 1, Styles.ToolbarGrid, GUILayout.Height(20f * names.Length));
             if (EditorGUI.EndChangeCheck())
             {
                 SetProfile(index);
             }
+            GUILayout.Space(3f);
+            EditorGUILayout.EndHorizontal();
 
             // Get the rect of the sidebar to handle events
 
