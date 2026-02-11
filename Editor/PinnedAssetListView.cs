@@ -67,6 +67,15 @@ namespace PinnedAssets.Editors
             }
 
             AssetLabelData label = controller.ActiveAssets[index];
+
+            // Delete the asset if invalid 
+
+            if (label.Asset == null)
+            {
+                controller.RemoveActiveAsset(label.ID);
+                return;
+            }
+
             Type assetType = label.Asset.GetType();
 
             PinnedAssetsDrawerCache
