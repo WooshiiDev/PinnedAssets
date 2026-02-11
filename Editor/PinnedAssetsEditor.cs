@@ -65,6 +65,8 @@ namespace PinnedAssets.Editors
 
         private Rect listRect;
         private Rect sidebarRect;
+        private Rect sidebarHightlightRect;
+
         private Rect highlightRect;
 
         private float size = DEFAULT_SIDEBAR_WIDTH;
@@ -164,7 +166,9 @@ namespace PinnedAssets.Editors
     
         private void DrawProfileList()
         {
+            EditorGUILayout.BeginVertical(Styles.Toolbar);
             List.Draw();
+            EditorGUILayout.EndVertical();
             listRect = GUILayoutUtility.GetLastRect();
         }
 
@@ -215,11 +219,7 @@ namespace PinnedAssets.Editors
 
         private void HandleSidebarResize(Rect rect, Event evt)
         {
-            Rect resizeRect = new Rect(rect);
-            resizeRect.xMin = resizeRect.xMax - 3f;
-            resizeRect.width = 3f;
-
-            bool contained = resizeRect.Contains(evt.mousePosition);
+            bool contained = rect.Contains(evt.mousePosition);
             switch (evt.GetTypeForControl(sidebarID))
             {
                 case EventType.MouseDown when contained:
@@ -229,27 +229,34 @@ namespace PinnedAssets.Editors
                     if (evt.clickCount == 2)
                     {
                         size = DEFAULT_SIDEBAR_WIDTH;
+                        goto Reset;
                     }
                     break;
 
                 case EventType.MouseDrag when performResize:
-                    size = Mathf.Clamp(size + evt.delta.x, 48f, sidebarRect.width + listRect.width);
+                    size += evt.delta.x; 
                     break;
 
                 case EventType.MouseUp:
-                    performResize = false;
-                    GUIUtility.hotControl = 0;
+                    Reset:
+                        performResize = false;
+                        GUIUtility.hotControl = 0;
                     break;
-            }
+                }
 
+            size = Mathf.Round(Mathf.Clamp(size, 48f, EditorGUIUtility.currentViewWidth * 0.5f));
+
+            Color highlightColour = Color.gray1;
             if (contained || GUIUtility.hotControl == sidebarID)
             {
                 Rect r = sidebarRect;
                 r.xMax = listRect.xMax;
 
                 EditorGUIUtility.AddCursorRect(r, MouseCursor.ResizeHorizontal);
-                EditorGUI.DrawRect(resizeRect, Color.lightSkyBlue);
+                highlightColour = Color.gray6;
             }
+
+            EditorGUI.DrawRect(sidebarHightlightRect, highlightColour);
         }
 
         private void SetProfile(int index)
@@ -322,20 +329,25 @@ namespace PinnedAssets.Editors
 
             // Update the profile when a profile has been switched
 
-            EditorGUILayout.BeginHorizontal(GUILayout.Width(size));
-            EditorGUI.BeginChangeCheck();
-            GUIContent[] names = GetProfileNames();
-            int index = GUILayout.SelectionGrid(Target.ActiveProfileIndex, names, 1, Styles.ToolbarGrid, GUILayout.Height(20f * names.Length));
-            if (EditorGUI.EndChangeCheck())
+            EditorGUILayout.BeginVertical(Styles.Toolbar, GUILayout.Width(size), GUILayout.ExpandHeight(true));
             {
-                SetProfile(index);
+                EditorGUI.BeginChangeCheck();
+                GUIContent[] names = GetProfileNames();
+                int index = GUILayout.SelectionGrid(Target.ActiveProfileIndex, names, 1, Styles.ToolbarGrid, GUILayout.Height(20f * names.Length));
+                if (EditorGUI.EndChangeCheck())
+                {
+                    SetProfile(index);
+                }
             }
-            GUILayout.Space(3f);
+            EditorGUILayout.EndVertical();
+
+            // Adding a spacer for a draggable handle
+
+            sidebarRect = EditorGUILayout.BeginHorizontal(Styles.Toolbar, GUILayout.Width(3f), GUILayout.ExpandHeight(true));
+            GUILayout.Space(2f);
+            sidebarHightlightRect = GUILayoutUtility.GetRect(2f, 0f, GUILayout.ExpandHeight(true));
+            GUILayout.Space(2f);
             EditorGUILayout.EndHorizontal();
-
-            // Get the rect of the sidebar to handle events
-
-            sidebarRect = GUILayoutUtility.GetLastRect(); 
         }
 
         private void DrawSearchbar()
