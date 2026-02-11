@@ -69,8 +69,6 @@ namespace PinnedAssets.Editors
 
         private Rect highlightRect;
 
-        private float size = DEFAULT_SIDEBAR_WIDTH;
-
         private int sidebarID;
 
         // - Properties
@@ -153,10 +151,7 @@ namespace PinnedAssets.Editors
             highlightRect.height = Mathf.Max(highlightRect.height, sidebarRect.height);
 
             HandleEvents(Event.current);
-
-           
             Repaint();
-
         }
 
         private void DrawFooter()
@@ -228,13 +223,13 @@ namespace PinnedAssets.Editors
 
                     if (evt.clickCount == 2)
                     {
-                        size = DEFAULT_SIDEBAR_WIDTH;
+                        Target.SidebarWidth = DEFAULT_SIDEBAR_WIDTH;
                         goto Reset;
                     }
                     break;
 
                 case EventType.MouseDrag when performResize:
-                    size += evt.delta.x; 
+                    Target.SidebarWidth += evt.delta.x; 
                     break;
 
                 case EventType.MouseUp:
@@ -244,7 +239,7 @@ namespace PinnedAssets.Editors
                     break;
                 }
 
-            size = Mathf.Round(Mathf.Clamp(size, 48f, EditorGUIUtility.currentViewWidth * 0.5f));
+            Target.SidebarWidth = Mathf.Round(Mathf.Clamp(Target.SidebarWidth, 48f, EditorGUIUtility.currentViewWidth * 0.5f));
 
             Color highlightColour = Color.gray1;
             if (contained || GUIUtility.hotControl == sidebarID)
@@ -329,7 +324,7 @@ namespace PinnedAssets.Editors
 
             // Update the profile when a profile has been switched
 
-            EditorGUILayout.BeginVertical(Styles.Toolbar, GUILayout.Width(size), GUILayout.ExpandHeight(true));
+            EditorGUILayout.BeginVertical(Styles.Toolbar, GUILayout.Width(Target.SidebarWidth), GUILayout.ExpandHeight(true));
             {
                 EditorGUI.BeginChangeCheck();
                 GUIContent[] names = GetProfileNames();
