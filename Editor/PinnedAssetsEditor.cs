@@ -167,6 +167,36 @@ namespace PinnedAssets.Editors
             listRect = GUILayoutUtility.GetLastRect();
         }
 
+        private void DrawProfileSidebar()
+        {
+            if (!Target.ShowSidebar)
+            {
+                return;
+            }
+
+            // Update the profile when a profile has been switched
+
+            EditorGUILayout.BeginVertical(Styles.Toolbar, GUILayout.Width(Target.SidebarWidth), GUILayout.ExpandHeight(true));
+            {
+                EditorGUI.BeginChangeCheck();
+                GUIContent[] names = GetProfileNames();
+                int index = GUILayout.SelectionGrid(Target.ActiveProfileIndex, names, 1, Styles.ToolbarGrid, GUILayout.Height(20f * names.Length));
+                if (EditorGUI.EndChangeCheck())
+                {
+                    SetProfile(index);
+                }
+            }
+            EditorGUILayout.EndVertical();
+
+            // Adding a spacer for a draggable handle
+
+            sidebarRect = EditorGUILayout.BeginHorizontal(Styles.Toolbar, GUILayout.Width(3f), GUILayout.ExpandHeight(true));
+            GUILayout.Space(2f);
+            sidebarHightlightRect = GUILayoutUtility.GetRect(2f, 0f, GUILayout.ExpandHeight(true));
+            GUILayout.Space(2f);
+            EditorGUILayout.EndHorizontal();
+        }
+
         private void HandleEvents(Event evt)
         {
             HandleAssetDrop(highlightRect, evt);
@@ -313,36 +343,6 @@ namespace PinnedAssets.Editors
             {
                 SetProfile(index);
             }
-        }
-
-        private void DrawProfileSidebar()
-        {
-            if (!Target.ShowSidebar)
-            {
-                return;
-            }
-
-            // Update the profile when a profile has been switched
-
-            EditorGUILayout.BeginVertical(Styles.Toolbar, GUILayout.Width(Target.SidebarWidth), GUILayout.ExpandHeight(true));
-            {
-                EditorGUI.BeginChangeCheck();
-                GUIContent[] names = GetProfileNames();
-                int index = GUILayout.SelectionGrid(Target.ActiveProfileIndex, names, 1, Styles.ToolbarGrid, GUILayout.Height(20f * names.Length));
-                if (EditorGUI.EndChangeCheck())
-                {
-                    SetProfile(index);
-                }
-            }
-            EditorGUILayout.EndVertical();
-
-            // Adding a spacer for a draggable handle
-
-            sidebarRect = EditorGUILayout.BeginHorizontal(Styles.Toolbar, GUILayout.Width(3f), GUILayout.ExpandHeight(true));
-            GUILayout.Space(2f);
-            sidebarHightlightRect = GUILayoutUtility.GetRect(2f, 0f, GUILayout.ExpandHeight(true));
-            GUILayout.Space(2f);
-            EditorGUILayout.EndHorizontal();
         }
 
         private void DrawSearchbar()
