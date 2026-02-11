@@ -26,6 +26,8 @@ namespace PinnedAssets
 
         [SerializeField] private string activeProfileID = string.Empty;
         [SerializeField] private string filter = string.Empty;
+        [SerializeField] private bool showSidebar;
+        [SerializeField] private float sidebarWidth;
 
         // - Properties
 
@@ -80,6 +82,13 @@ namespace PinnedAssets
                 filter = value;
                 OnFilterChange?.Invoke(value);
             }
+        }
+
+        public bool ShowSidebar => showSidebar;
+        public float SidebarWidth
+        {
+            get => sidebarWidth;
+            set => sidebarWidth = value;
         }
 
         // - Profiles

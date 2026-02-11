@@ -12,8 +12,14 @@ namespace PinnedAssets
         public static GUIContent Trash = EditorGUIUtility.IconContent("d_TreeEditor.Trash");
         public static GUIContent Dropdown = EditorGUIUtility.IconContent("d_icon dropdown");
 
-        public static GUIContent Create = EditorGUIUtility.IconContent("d_CreateAddNew");
-        public static GUIContent RemoveAsset = EditorGUIUtility.IconContent("CrossIcon");
+        public static GUIContent Create = new GUIContent(EditorGUIUtility.IconContent("d_CreateAddNew"))
+        {
+            tooltip = "Create new Profile"
+        };
+        public static GUIContent RemoveAsset = new GUIContent(EditorGUIUtility.IconContent("CrossIcon"))
+        {
+            tooltip = "Delete",
+        };
 
         public static GUIContent Edit = new GUIContent(EditorGUIUtility.IconContent("d_editicon.sml"))
         {
@@ -25,6 +31,11 @@ namespace PinnedAssets
         {
             text = "Open",
             tooltip = "Open"
+        };
+
+        public static GUIContent ShowProfileSidebar = new GUIContent(EditorGUIUtility.IconContent("d_VerticalLayoutGroup Icon"))
+        {
+            tooltip = "Toggle Profile Sidebar"
         };
     }
 
@@ -39,6 +50,11 @@ namespace PinnedAssets
         public static readonly GUIStyle Title;
 
         /// <summary>
+        /// Standard label for assets drawn.
+        /// </summary>
+        public static readonly GUIStyle AssetLabel;
+
+        /// <summary>
         /// Base toolbar style.
         /// </summary>
         public static readonly GUIStyle Toolbar;
@@ -47,6 +63,11 @@ namespace PinnedAssets
         /// Default style used for buttons that aligns with <see cref="Toolbar"/>.
         /// </summary>
         public static readonly GUIStyle ToolbarButton;
+
+        /// <summary>
+        /// Default style used for buttons that aligns with <see cref="Toolbar"/>.
+        /// </summary>
+        public static readonly GUIStyle ToolbarGrid;
 
         /// <summary>
         /// Toolbar style for dropdowns, but displaying images only.
@@ -67,9 +88,18 @@ namespace PinnedAssets
                 fontSize = 18,
             };
 
+            AssetLabel = new GUIStyle(EditorStyles.label)
+            {
+                clipping = TextClipping.Ellipsis
+            };
+
             // - Toolbars
 
-            Toolbar = new GUIStyle(EditorStyles.toolbar) { };
+            Toolbar = new GUIStyle(EditorStyles.toolbar) 
+            {
+                stretchHeight = true,
+                fixedHeight = 0,
+            };
 
             ToolbarButton = new GUIStyle(EditorStyles.toolbarButton)
             {
@@ -77,6 +107,12 @@ namespace PinnedAssets
                 stretchHeight = true,
 
                 fixedHeight = 0,
+            };
+
+            ToolbarGrid = new GUIStyle(ToolbarButton)
+            {
+                alignment = TextAnchor.MiddleLeft,
+                clipping = TextClipping.Ellipsis, 
             };
 
             ToolbarDropdownImage = new GUIStyle(EditorStyles.toolbarDropDown)
@@ -89,9 +125,9 @@ namespace PinnedAssets
             BoxContainer = new GUIStyle(GUI.skin.box)
             {
 #if UNITY_2019_1_OR_NEWER
-                stretchHeight = true,
+                stretchHeight = false,
 #endif
-                stretchWidth = true,
+                stretchWidth = false,
 
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter,
