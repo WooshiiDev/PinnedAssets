@@ -190,10 +190,8 @@ namespace PinnedAssets.Editors
 
             // Adding a spacer for a draggable handle
 
-            sidebarRect = EditorGUILayout.BeginHorizontal(Styles.Toolbar, GUILayout.Width(3f), GUILayout.ExpandHeight(true));
-            GUILayout.Space(2f);
+            sidebarRect = EditorGUILayout.BeginHorizontal(GUILayout.Width(2f), GUILayout.ExpandHeight(true));
             sidebarHightlightRect = GUILayoutUtility.GetRect(2f, 0f, GUILayout.ExpandHeight(true));
-            GUILayout.Space(2f);
             EditorGUILayout.EndHorizontal();
         }
 
@@ -259,15 +257,15 @@ namespace PinnedAssets.Editors
                     break;
 
                 case EventType.MouseDrag when performResize:
-                    Target.SidebarWidth += evt.delta.x; 
+                    Target.SidebarWidth += evt.delta.x;
                     break;
 
                 case EventType.MouseUp:
-                    Reset:
-                        performResize = false;
-                        GUIUtility.hotControl = 0;
+                Reset:
+                    performResize = false;
+                    GUIUtility.hotControl = 0;
                     break;
-                }
+            }
 
             Target.SidebarWidth = Mathf.Round(Mathf.Clamp(Target.SidebarWidth, 48f, EditorGUIUtility.currentViewWidth * 0.5f));
 
@@ -337,6 +335,11 @@ namespace PinnedAssets.Editors
 
         private void DrawProfileDropdown()
         {
+            if (Target.ShowSidebar) // No point for showing the sidebar & the dropdown
+            {
+                return;
+            }
+
             EditorGUI.BeginChangeCheck();
             int index = EditorGUILayout.Popup(Target.ActiveProfileIndex, GetProfileNames(), Styles.ToolbarDropdownImage, GUILayout.Width(32f));
             if (EditorGUI.EndChangeCheck())
@@ -375,5 +378,4 @@ namespace PinnedAssets.Editors
             return names.ToArray();
         }
     }
-
 }
