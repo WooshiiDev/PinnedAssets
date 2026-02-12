@@ -121,6 +121,8 @@ namespace PinnedAssets.Editors
 
         public override void OnInspectorGUI()
         {
+            EditorGUIUtility.SetIconSize(16f * Vector2.one); // Pre-define the size of all icons for consistency 
+
             EditorGUILayout.BeginVertical(Styles.BoxContainer, GUILayout.Height(21f));
             {
                 EditorGUILayout.BeginVertical(Styles.Toolbar);
