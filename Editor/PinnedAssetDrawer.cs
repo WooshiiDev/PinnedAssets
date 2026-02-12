@@ -18,7 +18,6 @@ namespace PinnedAssets.Editors
         protected void DrawDefaultGUI(Rect rect, AssetLabelData asset, PinnedAssetsController controller, SerializedObject serializedObject)
         {
             buttonPos = rect.x + rect.width;
-            EditorGUIUtility.SetIconSize(16f * Vector2.one);
 
             Rect labelRect = GetAssetLabelRect(rect);
             GUI.Label(labelRect, asset.Content);

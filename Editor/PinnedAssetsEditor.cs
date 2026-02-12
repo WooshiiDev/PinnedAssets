@@ -121,6 +121,8 @@ namespace PinnedAssets.Editors
 
         public override void OnInspectorGUI()
         {
+            EditorGUIUtility.SetIconSize(16f * Vector2.one); // Pre-define the size of all icons for consistency 
+
             EditorGUILayout.BeginVertical(Styles.BoxContainer, GUILayout.Height(21f));
             {
                 EditorGUILayout.BeginVertical(Styles.Toolbar);
@@ -154,11 +156,6 @@ namespace PinnedAssets.Editors
             Repaint();
         }
 
-        private void DrawFooter()
-        {
-            EditorGUILayout.LabelField("Drag and drop assets to add", EditorStyles.centeredGreyMiniLabel);
-        }
-    
         private void DrawProfileList()
         {
             EditorGUILayout.BeginVertical(Styles.Toolbar);
@@ -190,9 +187,15 @@ namespace PinnedAssets.Editors
 
             // Adding a spacer for a draggable handle
 
-            sidebarRect = EditorGUILayout.BeginHorizontal(GUILayout.Width(2f), GUILayout.ExpandHeight(true));
+            sidebarRect = EditorGUILayout.BeginHorizontal(GUILayout.Width(3f), GUILayout.ExpandHeight(true));
             sidebarHightlightRect = GUILayoutUtility.GetRect(2f, 0f, GUILayout.ExpandHeight(true));
+            GUILayout.Space(1f);
             EditorGUILayout.EndHorizontal();
+        }
+        
+        private void DrawFooter()
+        {
+            EditorGUILayout.LabelField("Drag and drop assets to add", EditorStyles.centeredGreyMiniLabel);
         }
 
         private void HandleEvents(Event evt)
