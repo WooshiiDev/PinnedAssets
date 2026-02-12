@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Runtime.InteropServices;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -80,7 +81,7 @@ namespace PinnedAssets.Editors
 
             PinnedAssetsDrawerCache
                 .Get(assetType)
-                .OnGUI(rect, label, controller, serializedObject);
+                .OnGUI(GetFullElementRect(rect), label, controller, serializedObject);
         }
 
         private void OnElementSelect(ReorderableList list)
@@ -102,6 +103,12 @@ namespace PinnedAssets.Editors
         private IList GetProfileAssets()
         {
             return controller.ActiveAssets;
+        }
+
+        private Rect GetFullElementRect(Rect rect)
+        {
+            rect.width += 6f;
+            return rect;
         }
     }
 }
