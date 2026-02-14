@@ -1,4 +1,3 @@
-using System;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -11,22 +10,21 @@ namespace PinnedAssets.Editors
 
         protected float buttonPos;
 
-        public virtual void OnGUI(Rect rect, Object asset, PinnedAssetListData list, SerializedObject serializedObject)
+        public virtual void OnGUI(Rect rect, AssetLabelData asset, PinnedAssetsController controller, SerializedObject serializedObject)
         {
-            DrawDefaultGUI(rect, asset, list, serializedObject);
+            DrawDefaultGUI(rect, asset, controller, serializedObject);
         }
 
-        protected void DrawDefaultGUI(Rect rect, Object asset, PinnedAssetListData list, SerializedObject serializedObject)
+        protected void DrawDefaultGUI(Rect rect, AssetLabelData asset, PinnedAssetsController controller, SerializedObject serializedObject)
         {
             buttonPos = rect.x + rect.width;
-            EditorGUIUtility.SetIconSize(16f * Vector2.one);
 
             Rect labelRect = GetAssetLabelRect(rect);
-            GUI.Label(labelRect, GetAssetContent(labelRect, asset));
+            GUI.Label(labelRect, asset.Content);
 
             if (Button(GetTrashButtonRect(rect), Icons.Trash, Styles.ToolbarButton))
             {
-                list.Remove(asset);
+                controller.RemoveActiveAsset(asset.ID);
                 serializedObject.Update();
             }
         }
@@ -132,20 +130,19 @@ namespace PinnedAssets.Editors
         /// </summary>
         /// <param name="rect">The GUI rect this asset uses.</param>
         /// <param name="asset"></param>
-        public sealed override void OnGUI(Rect rect, Object asset, PinnedAssetListData list, SerializedObject serializedObject)
+        public sealed override void OnGUI(Rect rect, AssetLabelData label, PinnedAssetsController controller, SerializedObject serializedObject)
         {
-            T targetAsset = (T)asset;
+            T targetAsset = label.Asset as T;
             if (!IsValid(targetAsset))
             {
-                DrawDefaultGUI(rect, asset, list, serializedObject);
+                DrawDefaultGUI(rect, label, controller, serializedObject);
                 return;
             }
 
             buttonPos = rect.x + rect.width;
 
-
             rect.height = GetHeight(rect, targetAsset);
-            OnAssetGUI(rect, targetAsset, list, serializedObject);
+            OnAssetGUI(rect, label, targetAsset, controller, serializedObject);
         }
 
         /// <summary>
@@ -153,7 +150,7 @@ namespace PinnedAssets.Editors
         /// </summary>
         /// <param name="instance">The instance.</param>
         /// <returns>Returns true if the instance is valid, otherwise returns false.</returns>        
-        public virtual bool IsValid(T instance)
+        public virtual bool IsValid(T asset)
         {
             return true;
         }
@@ -163,7 +160,7 @@ namespace PinnedAssets.Editors
         /// </summary>
         /// <param name="rect"></param>
         /// <param name="asset"></param>
-        protected abstract void OnAssetGUI(Rect rect, T asset, PinnedAssetListData list, SerializedObject serializedObject);
+        protected abstract void OnAssetGUI(Rect rect, AssetLabelData labels, T asset, PinnedAssetsController controller, SerializedObject serializedObject);
 
         /// <summary>
         /// 

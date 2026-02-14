@@ -6,9 +6,9 @@ namespace PinnedAssets.Editors.Drawers
 {
     public class TextAssetDrawer : PinnedAssetDrawer<TextAsset>
     {
-        protected override void OnAssetGUI(Rect rect, TextAsset asset, PinnedAssetListData list, SerializedObject serializedObject)
+        protected override void OnAssetGUI(Rect rect, AssetLabelData label, TextAsset asset, PinnedAssetsController list, SerializedObject serializedObject)
         {
-            DrawDefaultGUI(rect, asset, list, serializedObject);
+            DrawDefaultGUI(rect, label, list, serializedObject);
 
             if (Application.isPlaying)
             {
@@ -34,9 +34,9 @@ namespace PinnedAssets.Editors.Drawers
 
     public class MonoScriptDrawer : PinnedAssetDrawer<MonoScript>
     {
-        protected override void OnAssetGUI(Rect rect, MonoScript asset, PinnedAssetListData list, SerializedObject serializedObject)
+        protected override void OnAssetGUI(Rect rect, AssetLabelData label, MonoScript asset, PinnedAssetsController list, SerializedObject serializedObject)
         {
-            DrawDefaultGUI(rect, asset, list, serializedObject);
+            DrawDefaultGUI(rect, label, list, serializedObject);
 
             if (Application.isPlaying)
             {

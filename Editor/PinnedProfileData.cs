@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -14,12 +12,30 @@ namespace PinnedAssets
     [Serializable]
     public class PinnedProfileData : IEquatable<PinnedProfileData>
     {
+        public static event Action OnAssetsChange;
+
         // - Fields
 
+        [SerializeField] private string id;
         [SerializeField] private string name;
         [SerializeField] private List<PinnedAssetData> assets = new List<PinnedAssetData>();
 
         // - Properties
+
+        /// <summary>
+        /// The unique ID for this profile.
+        /// </summary>
+        public string ID
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    id = CreateGUID();
+                }
+                return id;
+            }
+        }
 
         /// <summary>
         /// This profile's name.
@@ -40,9 +56,41 @@ namespace PinnedAssets
         public PinnedProfileData(string name)
         {
             this.name = name;
+            id = CreateGUID();
+        }
+
+        private string CreateGUID()
+        {
+            return Guid.NewGuid().ToString();
         }
 
         // - Methods
+
+        /// <summary>
+        /// Get an asset with the given id.
+        /// </summary>
+        /// <param name="id">The id to look for.</param>
+        /// <returns>Returns the asset with the id if found, otherwise returns false.</returns>
+        public PinnedAssetData GetAsset(string id)
+        {
+            return assets.Find(a => a.ID.Equals(id));
+        }
+
+        /// <summary>
+        /// Get an asset.
+        /// </summary>
+        /// <param name="index">The index to access.</param>
+        /// <returns>Returns the asset at the given index, otherwise returns false.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">The index passed is out of range of the asset count.</exception>
+        public PinnedAssetData GetAsset(int index)
+        {
+            if (index < 0 || index >= assets.Count)
+            {
+                throw new ArgumentOutOfRangeException($"Invalid index {index} accessed on profile {name}.");
+            }
+
+            return assets[index];
+        }
 
         /// <summary>
         /// Add an asset to the profile.
@@ -56,12 +104,13 @@ namespace PinnedAssets
                 throw new NullReferenceException();
             }
 
-            if (Contains(asset))
+            if (IndexOf(asset) != -1)
             {
                 return;
             }
 
-            PinnedAssetData data = new PinnedAssetData(asset);
+            string guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
+            PinnedAssetData data = new PinnedAssetData(guid);
             if (index == -1)
             {
                 assets.Add(data);
@@ -70,6 +119,8 @@ namespace PinnedAssets
             {
                 assets.Insert(index, data);
             }
+
+            OnAssetsChanged();
         }
 
         /// <summary>
@@ -78,14 +129,14 @@ namespace PinnedAssets
         /// <param name="asset">The asset to remove.</param>
         /// <exception cref="NullReferenceException">This exception will be thrown if the asset passed is null.</exception>
         /// <returns>Returns true if the asset is successfully deleted otherwise this will return false.</returns>
-        public bool RemoveAsset(Object asset)
+        public bool RemoveAsset(string id)
         {
-            if (asset == null)
+            if (string.IsNullOrEmpty(id))
             {
-                throw new NullReferenceException();
+                return false;
             }
 
-            int index = IndexOf(asset);
+            int index = IndexOf(id);
             if (index == -1)
             {
                 return false;
@@ -108,6 +159,7 @@ namespace PinnedAssets
             }
 
             assets.RemoveAt(index);
+            OnAssetsChanged();
             return true;
         }
         
@@ -144,7 +196,7 @@ namespace PinnedAssets
             PinnedAssetData asset = assets[oldIndex];
             assets.RemoveAt(oldIndex);
             assets.Insert(newIndex, asset);
-
+            OnAssetsChanged();
             return true;
         }
 
@@ -162,32 +214,22 @@ namespace PinnedAssets
 
             return other.name.Equals(name);
         }
-        
+
         /// <summary>
-        /// Check if this profile contains an asset.
+        /// Get the index of an asset.
         /// </summary>
-        /// <param name="asset"></param>
-        /// <returns>Returns true if the asset exists, otherwise returns false. If the asset passed is null, this will also return false.</returns>
-        public bool Contains(Object asset)
+        /// <param name="id">The asset id.</param>
+        /// <returns>Returns the index of the found index, otherwise will return -1.</returns>
+        public int IndexOf(string id)
         {
-            return IndexOf(asset) != -1;
-        }
-    
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="asset"></param>
-        /// <returns></returns>
-        public int IndexOf(Object asset)
-        {
-            if (asset == null)
+            if (string.IsNullOrEmpty(id))
             {
                 return -1;
             }
 
             for (int i = 0; i < assets.Count; i++)
             {
-                if (assets[i].Equals(asset))
+                if (assets[i].ID.Equals(id))
                 {
                     return i;
                 }
@@ -195,91 +237,28 @@ namespace PinnedAssets
 
             return -1;
         }
-    }
 
-    /// <summary>
-    /// Representation of an asset.
-    /// </summary>
-    [Serializable]
-    public class PinnedAssetData : IEquatable<Object>
-    {
-        [SerializeField] private string path;
-        [SerializeField] private Object asset;
-
-        /// <summary>
-        /// The asset this data represents.
-        /// </summary>
-        public Object Asset => asset;
-
-        /// <summary>
-        /// The project path for this asset.
-        /// </summary>
-        public string Path => path;
-
-        /// <summary>
-        /// Create a new pinned asset instance, giving the asset it represents.
-        /// </summary>
-        /// <param name="asset">The asset this represents.</param>
-        public PinnedAssetData(Object asset)
+        private int IndexOf(Object asset)
         {
-            this.asset = asset;
-            UpdateCache();
-        }
-
-        public void UpdateCache()
-        {
-            path = GetAssetPath();
-        }
-
-        private string GetAssetPath()
-        {
-            return AssetDatabase.GetAssetPath(asset);
-        }
-
-        public bool IsValid()
-        {
-            return asset != null;
-        }
-
-        // Comparisons
-
-        public bool Equals(Object other)
-        {
-            if (other == null)
+            if (string.IsNullOrEmpty(id))
             {
-                return false;
+                return -1;
             }
 
-            return asset.GetInstanceID().Equals(other.GetInstanceID());
-        }
-        public override bool Equals(object obj)
-        {
-            if (obj == null)
+            for (int i = 0; i < assets.Count; i++)
             {
-                return false;
+                if (assets[i].Asset == asset)
+                {
+                    return i;
+                }
             }
 
-            return Equals(obj as Object);
+            return -1;
         }
-
-        public override int GetHashCode()
+ 
+        private void OnAssetsChanged()
         {
-            return asset.GetHashCode();
-        }
-
-        public static bool operator ==(PinnedAssetData a, PinnedAssetData b)
-        {
-            if (a is null || b is null)
-            {
-                return false;
-            }
-
-            return a.Equals(b);
-        }
-
-        public static bool operator !=(PinnedAssetData a, PinnedAssetData b)
-        {
-            return !(a == b);
+            OnAssetsChange?.Invoke();
         }
     }
 }

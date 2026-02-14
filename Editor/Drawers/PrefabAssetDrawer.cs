@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 
 namespace PinnedAssets.Editors.Drawers
 {
@@ -8,9 +7,9 @@ namespace PinnedAssets.Editors.Drawers
     {
         private static readonly GUIContent OpenContent = new GUIContent("Open");
 
-        protected override void OnAssetGUI(Rect rect, GameObject asset, PinnedAssetListData list, SerializedObject serializedObject)
+        protected override void OnAssetGUI(Rect rect, AssetLabelData label, GameObject asset, PinnedAssetsController list, SerializedObject serializedObject)
         {
-            DrawDefaultGUI(rect, asset, list, serializedObject);
+            DrawDefaultGUI(rect, label, list, serializedObject);
 
             if (Application.isPlaying)
             {
