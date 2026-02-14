@@ -1,3 +1,13 @@
+## 2.0.0
+
+### Changes
+ - Core logic has been converted to MVC for better data flow
+ - Profile data models now store IDs for assets
+ - A controller is used to communicate between the list gui & model  
+
+### Additions
+ - Added a togglable, resizable sidebar for displaying all profiles. 
+
 ## 1.3.0
 
 ### Changes
