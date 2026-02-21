@@ -1,3 +1,8 @@
+## 2.0.1
+
+### Fixes
+ - Cached colours missing in Unity 6 or earlier 
+
 ## 2.0.0
 
 ### Changes
