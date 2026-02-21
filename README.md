@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
- <img width="641" height="267" alt="image" src="https://github.com/user-attachments/assets/821fa19b-6cb7-44aa-8414-c81494d5bd47" />
+ <img width="795" height="395" alt="firefox_6HAW9faQ3i" src="https://github.com/user-attachments/assets/7e4693ad-6300-45f1-a36c-320bbf287fca" />
 </p>
 
 ## About
@@ -19,19 +19,21 @@
 Pinned Assets was made as Unity does not have an easy way to pin frequently accessed assets.
 This allows you to not only pin assets, but also make multiple profiles to easily group what you need together.
 
-Custom GUI drawers can be created for asset types, to extend pinned functionality:
+### Usage
 
-<p align="center">
- <img width="620" height="76" alt="image" src="https://github.com/user-attachments/assets/73caed9d-62c8-4314-a9ab-4dd354fd4000" />
-</p>
- 
+To create a PinnedAssets Scriptable go to **Create -> Pinned Assets Profile**
+
+### GUI Drawers
+
+Custom GUI drawers can be created for asset types, to extend pinned functionality: 
+
 [TextAssetDrawer.cs](https://github.com/WooshiiDev/PinnedAssets/blob/main/Editor/Drawers/TextAssetDrawer.cs)
 ```C#
 public class TextAssetDrawer : PinnedAssetDrawer<TextAsset>
 {
-    protected override void OnAssetGUI(Rect rect, TextAsset asset, PinnedAssetListData list, SerializedObject serializedObject)
+    protected override void OnAssetGUI(Rect rect, AssetLabelData label, TextAsset asset, PinnedAssetsController list, SerializedObject serializedObject)
     {
-        DrawDefaultGUI(rect, asset, list, serializedObject);
+        DrawDefaultGUI(rect, label, list, serializedObject);
 
         if (Application.isPlaying)
         {

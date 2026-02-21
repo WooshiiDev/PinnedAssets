@@ -53,6 +53,11 @@ namespace PinnedAssets.Editors
     {
         private const float DEFAULT_SIDEBAR_WIDTH = 96f;
 
+        // Replacement colours for earlier versions of unity 
+
+        private static readonly Color s_gray1 = new Color(0.1f, 0.1f, 0.1f, 1f);
+        private static readonly Color s_gray6 = new Color(0.6f, 0.6f, 0.6f, 1f);
+
         // - Fields
 
         private string search = string.Empty;
@@ -272,14 +277,14 @@ namespace PinnedAssets.Editors
 
             Target.SidebarWidth = Mathf.Round(Mathf.Clamp(Target.SidebarWidth, 48f, EditorGUIUtility.currentViewWidth * 0.5f));
 
-            Color highlightColour = Color.gray1;
+            Color highlightColour = s_gray1;
             if (contained || GUIUtility.hotControl == sidebarID)
             {
                 Rect r = sidebarRect;
                 r.xMax = listRect.xMax;
 
                 EditorGUIUtility.AddCursorRect(r, MouseCursor.ResizeHorizontal);
-                highlightColour = Color.gray6;
+                highlightColour = s_gray6;
             }
 
             EditorGUI.DrawRect(sidebarHightlightRect, highlightColour);
