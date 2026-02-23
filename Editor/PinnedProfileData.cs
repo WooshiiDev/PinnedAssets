@@ -110,6 +110,12 @@ namespace PinnedAssets
             }
 
             string guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
+
+            if (string.IsNullOrEmpty(guid))
+            {
+                return;
+            }
+
             PinnedAssetData data = new PinnedAssetData(guid);
             if (index == -1)
             {
