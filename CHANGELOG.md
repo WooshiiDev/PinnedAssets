@@ -1,3 +1,9 @@
+## 2.0.2
+
+### Fixes
+ - When searching, the displayed objects are now selected
+ - Invalid guids are no longer registered to profiles (this includes scene objects for the time)
+
 ## 2.0.1
 
 ### Fixes
