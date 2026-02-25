@@ -11,12 +11,14 @@ namespace PinnedAssets.Editors
         public readonly string ID;
         public readonly GUIContent Content;
         public readonly Object Asset;
+        public readonly int AssetIndex;
 
-        public AssetLabelData(string id, Object asset, GUIContent content)
+        public AssetLabelData(string id, int index, Object asset, GUIContent content)
         {
             ID = id;
             Content = content;
             Asset = asset;
+            AssetIndex = index;
         }
     }
 
@@ -154,7 +156,6 @@ namespace PinnedAssets.Editors
         public void MoveAsset(int oldIndex, int newIndex)
         {
             activeProfile.Move(oldIndex, newIndex);
-            UpdateActiveAssets();
         }
 
         private void UpdateActiveAssets()
@@ -170,15 +171,16 @@ namespace PinnedAssets.Editors
             List<AssetLabelData> filteredAssets = new List<AssetLabelData>();
             foreach (PinnedAssetData data in model.GetValidActiveAssets())
             {
-                filteredAssets.Add(CreateLabel(data));
+                int index = activeProfile.IndexOf(data.ID);
+                filteredAssets.Add(CreateLabel(index, data));
             }
 
             return filteredAssets;
         }
   
-        private AssetLabelData CreateLabel(PinnedAssetData data)
+        private AssetLabelData CreateLabel(int assetIndex, PinnedAssetData data)
         {
-            return new AssetLabelData(data.ID, data.Asset, GetAssetContent(data.Asset));
+            return new AssetLabelData(data.ID, assetIndex, data.Asset, GetAssetContent(data.Asset));
         }
 
         private GUIContent GetAssetContent(Object asset)

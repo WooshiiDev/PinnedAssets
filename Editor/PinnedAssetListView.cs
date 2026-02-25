@@ -17,6 +17,8 @@ namespace PinnedAssets.Editors
         private readonly SerializedObject serializedObject;
         private readonly ReorderableList list;
 
+        private bool isMoving;
+
         /// <summary>
         /// Create a new instance of a list view.
         /// </summary>
@@ -86,11 +88,21 @@ namespace PinnedAssets.Editors
 
         private void OnElementSelect(ReorderableList list)
         {
-            controller.SelectActiveAssetsFromReorderable(list.selectedIndices);
+            int count = list.selectedIndices.Count;
+            int[] realIndices = new int[list.selectedIndices.Count];
+
+            for (int i = 0; i < count; i++)
+            {
+                int selected = list.selectedIndices[i];
+                realIndices[i] = controller.ActiveAssets[selected].AssetIndex;
+            }
+
+            controller.SelectActiveAssetsFromReorderable(realIndices);
         }
 
         private void OnElementReorder(ReorderableList list, int oldIndex, int newIndex)
         {
+            isMoving = true;
             controller.MoveAsset(oldIndex, newIndex);
         }
 
@@ -98,6 +110,14 @@ namespace PinnedAssets.Editors
         {
             list.list = GetProfileAssets();
             list.draggable = !controller.HasFilter;
+
+            // Only clear if not moving
+
+            if (!isMoving)
+            {
+                list.ClearSelection();
+            }
+            isMoving = false;
         }
 
         private IList GetProfileAssets()
