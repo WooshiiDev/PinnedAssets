@@ -96,7 +96,7 @@ namespace PinnedAssets.Editors
         private void OnEnable()
         {
             PinnedAssetsDrawerCache.Collect();
-            PinnedAssetsManager.OnAfterProcess += Refresh;
+            PinnedAssetsManager.OnAfterProcess += Save;
 
             controller = new PinnedAssetsController(Target);
             sidebarProperty = serializedObject.FindProperty("showSidebar");
@@ -105,17 +105,12 @@ namespace PinnedAssets.Editors
 
         private void OnDisable()
         {
-            PinnedAssetsManager.OnAfterProcess -= Refresh;
+            PinnedAssetsManager.OnAfterProcess -= Save;
             list?.Dispose();
             controller?.Dispose();
         }
 
         protected override void OnHeaderGUI() { }
-
-        private void Refresh()
-        {
-            Save();
-        }
 
         private void Save()
         {
@@ -239,6 +234,7 @@ namespace PinnedAssets.Editors
                     DragAndDrop.AcceptDrag();
                     controller.AddActiveAssets(DragAndDrop.objectReferences);
                     performDrag = false;
+                    Save();
                     break;
 
                 case EventType.DragExited:
