@@ -1,3 +1,8 @@
+## 2.0.3
+
+### Fixes
+ - Any profile modification now applies changes 
+
 ## 2.0.2
 
 ### Fixes
